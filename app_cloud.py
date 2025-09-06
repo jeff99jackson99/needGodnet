@@ -533,10 +533,15 @@ def main():
             for i, answer in enumerate(suggested_answers[:3]):
                 with cols[i]:
                     if st.button(f"{answer}", key=f"suggest_{i}", use_container_width=True):
+                        # Clear the text input
+                        st.session_state.response_input = ""
+                        # Process the response
                         response = st.session_state.script_follower.process_audio_text(answer)
                         if response:
                             st.session_state.latest_response = response
                             st.rerun()
+                        else:
+                            st.write(f"**DEBUG:** No response found for '{answer}'")
     
     col_btn1, col_btn2 = st.columns(2)
     
