@@ -294,10 +294,19 @@ class EvangelismScriptFollower:
         # Add to phrase buffer
         self.phrase_buffer.append(audio_text)
         
+        # Debug logging
+        logger.info(f"Processing audio text: '{audio_text}'")
+        logger.info(f"Current position: {self.current_position}")
+        if self.current_position < len(self.conversation_flow):
+            current_item = self.conversation_flow[self.current_position]
+            logger.info(f"Current question: {current_item['question']}")
+            logger.info(f"Available responses: {current_item['responses']}")
+        
         # Find best match
         match = self.find_best_match(audio_text)
         
         if match:
+            logger.info(f"Match found: {match}")
             # Log the interaction
             self.log_interaction(audio_text, match)
             
@@ -305,6 +314,8 @@ class EvangelismScriptFollower:
             self.response_history.append(match)
             
             return match
+        else:
+            logger.info(f"No match found for: '{audio_text}'")
         
         return None
 

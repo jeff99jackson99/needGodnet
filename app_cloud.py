@@ -506,6 +506,15 @@ def main():
                 st.write(f"Question: {first_q['question']}")
                 st.write(f"Responses: {first_q['responses']}")
                 st.write(f"Guidance: {first_q['guidance'][:2] if first_q['guidance'] else 'None'}")
+                
+                # Test matching
+                test_phrase = "i don't know"
+                st.write(f"**Test Matching:**")
+                st.write(f"Testing phrase: '{test_phrase}'")
+                for response in first_q['responses']:
+                    from fuzzywuzzy import fuzz
+                    ratio = fuzz.ratio(test_phrase, response.lower())
+                    st.write(f"Match with '{response}': {ratio}%")
 
         with col2:
             st.subheader("Performance Settings")
