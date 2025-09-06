@@ -230,7 +230,29 @@ class EvangelismScriptFollower:
         
         spoken_lower = spoken_text.lower()
         
-        # FIRST: Try to match against current question responses (person answering)
+        # FIRST: Use intelligence to analyze the response for specific questions
+        if self.current_position < len(self.conversation_flow):
+            current_item = self.conversation_flow[self.current_position]
+            intelligent_match = self.analyze_response_intelligence(spoken_text, current_item['question'])
+            if intelligent_match:
+                # Update current position based on intelligent match's next_question
+                next_q_text = intelligent_match['next_question']
+                if next_q_text and next_q_text != "End of script reached":
+                    for i, item in enumerate(self.conversation_flow):
+                        if item['question'] == next_q_text:
+                            self.current_position = i
+                            break
+                return {
+                    'type': 'response_match',
+                    'question_number': current_item['question_number'],
+                    'question': current_item['question'],
+                    'matched_response': intelligent_match['matched_response'],
+                    'guidance': intelligent_match['guidance'],
+                    'confidence': intelligent_match['confidence'],
+                    'next_question': intelligent_match['next_question']
+                }
+        
+        # SECOND: Try to match against current question responses (person answering)
         # This should take priority over question matching
         if self.current_position < len(self.conversation_flow):
             current_item = self.conversation_flow[self.current_position]
@@ -404,6 +426,13 @@ class EvangelismScriptFollower:
                     'matched_response': 'No',
                     'next_question': self.get_question_by_number(5),  # Go to Q5 (as per script)
                     'guidance': ['They do not believe in God. Ask about the building analogy and if they still refuse, go to Q5.'],
+                    'confidence': 90
+                }
+            elif any(word in spoken_lower for word in ['not sure', 'dont know', "don't know", 'unsure', 'maybe']):
+                return {
+                    'matched_response': 'Not sure',
+                    'next_question': self.get_question_by_number(3),  # Go to Q3 (as per script guidance)
+                    'guidance': ['They are not sure about God. Proceed to the next question.'],
                     'confidence': 90
                 }
         
