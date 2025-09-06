@@ -19,9 +19,6 @@ import PyPDF2
 import logging
 import streamlit.components.v1 as components
 
-# Import the optimized version
-from app_optimized import OptimizedScriptFollower, create_speech_recognition_component
-
 # Configure logging
 def setup_logging():
     """Setup logging for cloud deployment"""
@@ -40,61 +37,17 @@ def setup_logging():
 
 logger = setup_logging()
 
-class GitHubScriptManager:
-    def __init__(self, repo_owner, repo_name, token=None):
-        self.repo_owner = repo_owner
-        self.repo_name = repo_name
-        self.token = token
-        self.base_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}"
-        self.headers = {"Authorization": f"token {token}"} if token else {}
-        
-    def get_file_content(self, file_path):
-        """Get file content from GitHub repository"""
-        try:
-            url = f"{self.base_url}/contents/{file_path}"
-            response = requests.get(url, headers=self.headers)
-            response.raise_for_status()
-            
-            data = response.json()
-            content = base64.b64decode(data['content']).decode('utf-8')
-            return content
-        except Exception as e:
-            logger.error(f"Error fetching file from GitHub: {e}")
-            return None
-    
-    def get_file_list(self, path=""):
-        """Get list of files in repository"""
-        try:
-            url = f"{self.base_url}/contents/{path}"
-            response = requests.get(url, headers=self.headers)
-            response.raise_for_status()
-            
-            files = []
-            for item in response.json():
-                if item['type'] == 'file':
-                    files.append({
-                        'name': item['name'],
-                        'path': item['path'],
-                        'size': item['size'],
-                        'download_url': item['download_url']
-                    })
-            return files
-        except Exception as e:
-            logger.error(f"Error fetching file list from GitHub: {e}")
-            return []
-
-class ScriptFollower:
+class OptimizedScriptFollower:
     def __init__(self):
-        # Initialize with speech recognition for cloud deployment
+        # Initialize with speech recognition
         self.recognizer = sr.Recognizer()
         self.script_data = {}
         self.is_listening = False
         self.results_queue = queue.Queue()
         self.current_phrase = ""
-        self.phrase_buffer = deque(maxlen=10)
-        self.confidence_threshold = 60
-        self.response_delay = 0.1
-        self.listening_thread = None
+        self.phrase_buffer = deque(maxlen=5)  # Shorter buffer for faster response
+        self.confidence_threshold = 70  # Higher threshold for better accuracy
+        self.response_delay = 0.05  # Faster response time
         
         # Cloud storage paths
         self.data_path = "/tmp/script-follower/data"
@@ -104,93 +57,82 @@ class ScriptFollower:
         os.makedirs(self.data_path, exist_ok=True)
         os.makedirs(self.log_path, exist_ok=True)
         
-        # GitHub configuration
-        self.github_owner = "jeffjackson"  # Default, can be changed in UI
-        self.github_repo = "script-follower"
-        self.github_token = ""
+        # Load the script automatically
+        self.load_script_automatically()
         
-        self.github_manager = GitHubScriptManager(
-            self.github_owner, 
-            self.github_repo, 
-            self.github_token
-        )
-        
-        logger.info("ScriptFollower initialized for cloud deployment")
+        logger.info("OptimizedScriptFollower initialized with automatic script loading")
     
-    def load_script_from_github(self, file_path):
+    def load_script_automatically(self):
+        """Load the needgodscript.pdf automatically"""
+        try:
+            # Try to load from GitHub first
+            script_content = self.load_script_from_github()
+            if script_content:
+                self.script_data = self.parse_script_text(script_content)
+                logger.info(f"Script loaded from GitHub with {len(self.script_data)} lines")
+                return
+            
+            # If GitHub fails, try to load from local file
+            script_file = "needgodscript.pdf"
+            if os.path.exists(script_file):
+                with open(script_file, 'rb') as file:
+                    pdf_reader = PyPDF2.PdfReader(file)
+                    text = ""
+                    for page in pdf_reader.pages:
+                        text += page.extract_text() + "\n"
+                    
+                    self.script_data = self.parse_script_text(text)
+                    logger.info(f"Script loaded from local file with {len(self.script_data)} lines")
+            else:
+                logger.warning("Script file not found, using empty script")
+                self.script_data = {}
+                
+        except Exception as e:
+            logger.error(f"Error loading script automatically: {e}")
+            self.script_data = {}
+    
+    def load_script_from_github(self):
         """Load script from GitHub repository"""
         try:
-            content = self.github_manager.get_file_content(file_path)
-            
-            if content:
-                if file_path.endswith('.pdf'):
-                    # For PDF files, we need to handle differently in cloud
-                    return self.parse_script_text(content)
-                else:
-                    return self.parse_script_text(content)
-            
-            return {}
-            
+            # Try to get the script from the repository
+            url = "https://api.github.com/repos/jeff99jackson99/needGodnet/contents/needgodscript.pdf"
+            response = requests.get(url)
+            if response.status_code == 200:
+                data = response.json()
+                content = base64.b64decode(data['content']).decode('utf-8')
+                return content
         except Exception as e:
-            logger.error(f"Error loading script from GitHub: {e}")
-            st.error(f"Error loading script from GitHub: {e}")
-            return {}
-    
-    def load_script_from_pdf(self, pdf_file):
-        """Load script from uploaded PDF file"""
-        try:
-            pdf_reader = PyPDF2.PdfReader(pdf_file)
-            text = ""
-            for page in pdf_reader.pages:
-                text += page.extract_text() + "\n"
-            
-            script_data = self.parse_script_text(text)
-            
-            # Save parsed script
-            script_file = f"{self.data_path}/parsed_script.json"
-            with open(script_file, 'w') as f:
-                json.dump(script_data, f, indent=2)
-            
-            logger.info(f"Script loaded and saved to {script_file}")
-            return script_data
-            
-        except Exception as e:
-            logger.error(f"Error loading PDF: {e}")
-            st.error(f"Error loading PDF: {e}")
-            return {}
-    
-    def load_script_from_file(self, file_path):
-        """Load script from saved JSON file"""
-        try:
-            with open(file_path, 'r') as f:
-                script_data = json.load(f)
-            logger.info(f"Script loaded from {file_path}")
-            return script_data
-        except Exception as e:
-            logger.error(f"Error loading script file: {e}")
-            return {}
+            logger.error(f"Error loading from GitHub: {e}")
+        return None
     
     def parse_script_text(self, text):
-        """Parse script text into structured format"""
+        """Parse script text into optimized format for fast matching"""
         script_data = {}
         lines = text.split('\n')
         
         current_speaker = None
         current_line = ""
+        line_number = 0
         
         for line in lines:
             line = line.strip()
             if not line:
                 continue
                 
-            # Check if line starts with a speaker name (common patterns)
+            line_number += 1
+            
+            # Check if line starts with a speaker name
             if re.match(r'^[A-Z][A-Z\s]+:', line) or re.match(r'^[A-Z][A-Z\s]+$', line):
                 if current_speaker and current_line:
-                    script_data[current_line.strip()] = {
+                    # Store with multiple searchable formats
+                    clean_line = current_line.strip()
+                    script_data[clean_line] = {
                         'speaker': current_speaker,
-                        'response': current_line,
-                        'keywords': self.extract_keywords(current_line),
-                        'timestamp': datetime.now().isoformat()
+                        'response': clean_line,
+                        'keywords': self.extract_keywords(clean_line),
+                        'line_number': line_number - 1,
+                        'timestamp': datetime.now().isoformat(),
+                        'search_terms': self.create_search_terms(clean_line)
                     }
                 current_speaker = line.replace(':', '').strip()
                 current_line = ""
@@ -199,65 +141,78 @@ class ScriptFollower:
         
         # Add the last line
         if current_speaker and current_line:
-            script_data[current_line.strip()] = {
+            clean_line = current_line.strip()
+            script_data[clean_line] = {
                 'speaker': current_speaker,
-                'response': current_line,
-                'keywords': self.extract_keywords(current_line),
-                'timestamp': datetime.now().isoformat()
+                'response': clean_line,
+                'keywords': self.extract_keywords(clean_line),
+                'line_number': line_number,
+                'timestamp': datetime.now().isoformat(),
+                'search_terms': self.create_search_terms(clean_line)
             }
         
         return script_data
     
+    def create_search_terms(self, text):
+        """Create multiple search terms for faster matching"""
+        terms = []
+        # Original text
+        terms.append(text.lower())
+        # Individual words
+        words = re.findall(r'\b\w+\b', text.lower())
+        terms.extend(words)
+        # Phrases of 2-3 words
+        for i in range(len(words) - 1):
+            terms.append(' '.join(words[i:i+2]))
+        for i in range(len(words) - 2):
+            terms.append(' '.join(words[i:i+3]))
+        return list(set(terms))
+    
     def extract_keywords(self, text):
         """Extract important keywords from text for matching"""
-        stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'must'}
+        stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'must', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them'}
         words = re.findall(r'\b\w+\b', text.lower())
         keywords = [word for word in words if word not in stop_words and len(word) > 2]
         return keywords
     
-    def find_best_match(self, spoken_text):
-        """Find the best matching script line using fuzzy matching"""
-        if not spoken_text or len(spoken_text.strip()) < 3:
+    def find_best_match_fast(self, spoken_text):
+        """Ultra-fast script matching optimized for real-time use"""
+        if not spoken_text or len(spoken_text.strip()) < 2:
             return None, 0
         
+        spoken_lower = spoken_text.lower()
         best_match = None
         best_score = 0
         
-        # Try exact phrase matching first
+        # First pass: exact substring matching (fastest)
         for script_line, data in self.script_data.items():
-            score = fuzz.ratio(spoken_text.lower(), script_line.lower())
-            if score > best_score:
-                best_score = score
-                best_match = (script_line, data)
+            if spoken_lower in script_line.lower():
+                score = 95  # High score for exact substring match
+                if score > best_score:
+                    best_score = score
+                    best_match = (script_line, data)
         
-        # Try keyword matching if exact match is poor
-        if best_score < self.confidence_threshold:
-            spoken_keywords = self.extract_keywords(spoken_text)
+        # Second pass: search terms matching
+        if best_score < 80:
+            spoken_words = set(re.findall(r'\b\w+\b', spoken_lower))
             for script_line, data in self.script_data.items():
-                script_keywords = data['keywords']
-                keyword_score = fuzz.token_set_ratio(spoken_keywords, script_keywords)
-                if keyword_score > best_score:
-                    best_score = keyword_score
+                search_terms = data['search_terms']
+                matches = len(spoken_words.intersection(set(search_terms)))
+                if matches > 0:
+                    score = min(90, matches * 15)  # Score based on word matches
+                    if score > best_score:
+                        best_score = score
+                        best_match = (script_line, data)
+        
+        # Third pass: fuzzy matching (slower but more accurate)
+        if best_score < self.confidence_threshold:
+            for script_line, data in self.script_data.items():
+                score = fuzz.ratio(spoken_lower, script_line.lower())
+                if score > best_score:
+                    best_score = score
                     best_match = (script_line, data)
         
         return best_match if best_score >= self.confidence_threshold else (None, 0)
-    
-    def log_interaction(self, spoken_text, match_result, confidence):
-        """Log interaction"""
-        log_entry = {
-            'timestamp': datetime.now().isoformat(),
-            'spoken_text': spoken_text,
-            'matched': match_result is not None,
-            'confidence': confidence,
-            'match_line': match_result[0] if match_result else None,
-            'speaker': match_result[1]['speaker'] if match_result else None
-        }
-        
-        log_file = f"{self.log_path}/interactions_{datetime.now().strftime('%Y%m%d')}.jsonl"
-        with open(log_file, 'a') as f:
-            f.write(json.dumps(log_entry) + '\n')
-        
-        logger.info(f"Interaction logged: {confidence}% confidence")
     
     def start_listening(self):
         """Start the listening process"""
@@ -273,15 +228,15 @@ class ScriptFollower:
         logger.info("Listening stopped")
     
     def process_audio_text(self, audio_text):
-        """Process audio text and find matches"""
-        if not audio_text or len(audio_text.strip()) < 3:
+        """Process audio text and find matches with ultra-fast response"""
+        if not audio_text or len(audio_text.strip()) < 2:
             return
         
         self.phrase_buffer.append(audio_text)
         self.current_phrase = " ".join(list(self.phrase_buffer))
         
-        # Find best match
-        match, score = self.find_best_match(self.current_phrase)
+        # Find best match using fast algorithm
+        match, score = self.find_best_match_fast(self.current_phrase)
         
         # Log interaction
         self.log_interaction(self.current_phrase, match, score)
@@ -293,21 +248,59 @@ class ScriptFollower:
                 'response': match[1]['response'],
                 'speaker': match[1]['speaker'],
                 'confidence': score,
+                'line_number': match[1]['line_number'],
                 'timestamp': time.time()
             })
             
-            # Clear buffer after successful match
+            # Clear buffer after successful match for faster response
             self.phrase_buffer.clear()
             self.current_phrase = ""
+    
+    def log_interaction(self, spoken_text, match_result, confidence):
+        """Log interaction for analysis"""
+        log_entry = {
+            'timestamp': datetime.now().isoformat(),
+            'spoken_text': spoken_text,
+            'matched': match_result is not None,
+            'confidence': confidence,
+            'match_line': match_result[0] if match_result else None,
+            'speaker': match_result[1]['speaker'] if match_result else None
+        }
+        
+        log_file = f"{self.log_path}/interactions_{datetime.now().strftime('%Y%m%d')}.jsonl"
+        with open(log_file, 'a') as f:
+            f.write(json.dumps(log_entry) + '\n')
 
 def create_speech_recognition_component():
-    """Create HTML component for speech recognition"""
+    """Create optimized HTML component for speech recognition"""
     html_code = """
-    <div id="speech-recognition">
-        <button id="startBtn" onclick="startListening()">🎤 Start Listening</button>
-        <button id="stopBtn" onclick="stopListening()" disabled>⏹️ Stop Listening</button>
-        <div id="status">Click "Start Listening" to begin</div>
-        <div id="transcript"></div>
+    <div id="speech-recognition" style="padding: 20px; border: 2px solid #FF6B6B; border-radius: 10px; background: #f8f9fa;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <button id="startBtn" onclick="startListening()" style="
+                background: #FF6B6B; 
+                color: white; 
+                border: none; 
+                padding: 15px 30px; 
+                font-size: 18px; 
+                border-radius: 25px; 
+                cursor: pointer;
+                margin: 10px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            ">🎤 Start Listening</button>
+            <button id="stopBtn" onclick="stopListening()" disabled style="
+                background: #6c757d; 
+                color: white; 
+                border: none; 
+                padding: 15px 30px; 
+                font-size: 18px; 
+                border-radius: 25px; 
+                cursor: pointer;
+                margin: 10px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            ">⏹️ Stop Listening</button>
+        </div>
+        <div id="status" style="text-align: center; font-size: 16px; margin: 10px 0; font-weight: bold;">Click "Start Listening" to begin</div>
+        <div id="transcript" style="background: white; padding: 15px; border-radius: 8px; min-height: 100px; border: 1px solid #ddd;"></div>
     </div>
 
     <script>
@@ -316,7 +309,7 @@ def create_speech_recognition_component():
 
         function startListening() {
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                document.getElementById('status').innerHTML = 'Speech recognition not supported in this browser';
+                document.getElementById('status').innerHTML = '❌ Speech recognition not supported in this browser';
                 return;
             }
 
@@ -332,6 +325,7 @@ def create_speech_recognition_component():
                 document.getElementById('startBtn').disabled = true;
                 document.getElementById('stopBtn').disabled = false;
                 document.getElementById('status').innerHTML = '🎧 Listening... Speak now!';
+                document.getElementById('status').style.color = '#28a745';
             };
 
             recognition.onresult = function(event) {
@@ -348,10 +342,10 @@ def create_speech_recognition_component():
                 }
 
                 document.getElementById('transcript').innerHTML = 
-                    '<strong>Final:</strong> ' + finalTranscript + '<br>' +
-                    '<em>Interim:</em> ' + interimTranscript;
+                    '<div style="color: #28a745; font-weight: bold;">✅ Final: ' + finalTranscript + '</div>' +
+                    '<div style="color: #6c757d; font-style: italic;">🔄 Interim: ' + interimTranscript + '</div>';
 
-                // Send final transcript to Streamlit
+                // Send final transcript to Streamlit immediately
                 if (finalTranscript) {
                     window.parent.postMessage({
                         type: 'streamlit:setComponentValue',
@@ -362,14 +356,16 @@ def create_speech_recognition_component():
 
             recognition.onerror = function(event) {
                 console.error('Speech recognition error:', event.error);
-                document.getElementById('status').innerHTML = 'Error: ' + event.error;
+                document.getElementById('status').innerHTML = '❌ Error: ' + event.error;
+                document.getElementById('status').style.color = '#dc3545';
             };
 
             recognition.onend = function() {
                 isListening = false;
                 document.getElementById('startBtn').disabled = false;
                 document.getElementById('stopBtn').disabled = true;
-                document.getElementById('status').innerHTML = 'Stopped listening';
+                document.getElementById('status').innerHTML = '⏹️ Stopped listening';
+                document.getElementById('status').style.color = '#6c757d';
             };
 
             recognition.start();
@@ -394,7 +390,7 @@ def main():
     st.title("🎭 Need God Script Follower")
     st.markdown("**Real-time conversation listener that instantly guides you to the right script point**")
     
-    # Initialize session state with optimized follower
+    # Initialize session state
     if 'script_follower' not in st.session_state:
         st.session_state.script_follower = OptimizedScriptFollower()
     
