@@ -117,7 +117,9 @@ class EvangelismScriptFollower:
                 
             # Look for responses (short answers like "Yes..", "Not sure.")
             elif current_question and line and not in_guidance_section:
-                if line.endswith('..') or line in ['Yes', 'No', 'Not sure', 'Sure']:
+                if (line.endswith('..') or 
+                    line in ['Yes', 'No', 'Not sure', 'Sure', 'Not sure.'] or
+                    line.lower() in ['yes', 'no', 'not sure', 'sure', 'i don\'t know', 'i don\'t know.']):
                     current_responses.append(line)
                 elif 'If they say' in line or 'ask:' in line or 'proceed to' in line or len(line) > 30:
                     # This is guidance text
@@ -136,6 +138,13 @@ class EvangelismScriptFollower:
                 'guidance': current_guidance,
                 'question_number': len(conversation_flow) + 1
             })
+        
+        # Debug: Print first question structure
+        if conversation_flow:
+            first_q = conversation_flow[0]
+            logger.info(f"First question parsed: {first_q['question']}")
+            logger.info(f"Responses: {first_q['responses']}")
+            logger.info(f"Guidance: {first_q['guidance'][:2] if first_q['guidance'] else 'None'}")
         
         return conversation_flow
 
@@ -244,7 +253,15 @@ class EvangelismScriptFollower:
             # Check responses for current question
             for response in current_item['responses']:
                 response_lower = response.lower()
-                if fuzz.ratio(spoken_lower, response_lower) > self.confidence_threshold:
+                ratio = fuzz.ratio(spoken_lower, response_lower)
+                
+                # Also check for common variations
+                if (ratio > self.confidence_threshold or
+                    (spoken_lower in ['i don\'t know', 'i don\'t know.', 'dunno'] and 
+                     response_lower in ['not sure', 'not sure.']) or
+                    (spoken_lower in ['not sure', 'not sure.'] and 
+                     response_lower in ['i don\'t know', 'i don\'t know.'])):
+                    
                     # Move to next question after getting a response
                     self.current_position = min(self.current_position + 1, len(self.conversation_flow) - 1)
                     return {
@@ -253,7 +270,7 @@ class EvangelismScriptFollower:
                         'question': current_item['question'],
                         'matched_response': response,
                         'guidance': current_item['guidance'],
-                        'confidence': fuzz.ratio(spoken_lower, response_lower),
+                        'confidence': max(ratio, 85),  # Boost confidence for variations
                         'next_question': self.get_next_question()
                     }
         
