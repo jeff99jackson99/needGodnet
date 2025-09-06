@@ -360,6 +360,113 @@ class EvangelismScriptFollower:
         
         return None
 
+    def analyze_response_intelligence(self, spoken_text, current_question):
+        """Use intelligence to analyze their response and determine the right next question"""
+        spoken_lower = spoken_text.lower()
+        question_lower = current_question.lower()
+        
+        # Question 1: "What do you think happens to us after we die?"
+        if "what do you think happens to us after we die" in question_lower:
+            if any(word in spoken_lower for word in ['heaven', 'hell', 'god', 'jesus', 'christ', 'afterlife']):
+                # They believe in heaven/hell - follow the script guidance
+                return {
+                    'matched_response': 'Heaven and hell',
+                    'next_question': self.get_question_by_number(3),  # Skip to Q3
+                    'guidance': ['They believe in heaven and hell. Ask if they think they will go to heaven and why.'],
+                    'confidence': 90
+                }
+            elif any(word in spoken_lower for word in ['reincarnation', 'rebirth', 'come back', 'born again']):
+                return {
+                    'matched_response': 'Reincarnation',
+                    'next_question': self.get_question_by_number(2),  # Go to Q2
+                    'guidance': ['They mentioned reincarnation. Go straight to the next question.'],
+                    'confidence': 90
+                }
+            else:
+                return {
+                    'matched_response': 'Not sure',
+                    'next_question': self.get_question_by_number(2),  # Go to Q2
+                    'guidance': ['They are not sure. Go straight to the next question.'],
+                    'confidence': 85
+                }
+        
+        # Question 2: "Do you believe there's a God?"
+        elif "do you believe there's a god" in question_lower:
+            if any(word in spoken_lower for word in ['yes', 'yeah', 'yep', 'believe', 'god', 'creator', 'jesus', 'christ', 'heaven']):
+                return {
+                    'matched_response': 'Yes',
+                    'next_question': self.get_question_by_number(3),  # Go to Q3
+                    'guidance': ['They believe in God. Proceed to the next question.'],
+                    'confidence': 90
+                }
+            elif any(word in spoken_lower for word in ['no', 'nope', 'nah', 'dont', "don't", 'not']):
+                return {
+                    'matched_response': 'No',
+                    'next_question': self.get_question_by_number(5),  # Go to Q5 (as per script)
+                    'guidance': ['They do not believe in God. Ask about the building analogy and if they still refuse, go to Q5.'],
+                    'confidence': 90
+                }
+        
+        # Question 3: "Since we know there is a God, it matters how we live. So, do you think you are a good person?"
+        elif "are a good person" in question_lower:
+            if any(word in spoken_lower for word in ['yes', 'yeah', 'yep', 'good', 'decent', 'moral']):
+                return {
+                    'matched_response': 'Yes',
+                    'next_question': self.get_question_by_number(4),  # Go to Q4
+                    'guidance': ['They think they are a good person. Proceed to question 4.'],
+                    'confidence': 90
+                }
+            elif any(word in spoken_lower for word in ['no', 'nope', 'nah', 'not', 'bad', 'sinner']):
+                return {
+                    'matched_response': 'No',
+                    'next_question': self.get_question_by_number(7),  # Go to Q7 (as per script)
+                    'guidance': ['They admit they are not a good person. Thank them for honesty and move to question 7.'],
+                    'confidence': 90
+                }
+        
+        # Question 4: "Have you ever told a lie?"
+        elif "told a lie" in question_lower:
+            if any(word in spoken_lower for word in ['yes', 'yeah', 'yep', 'lied', 'lie', 'lies']):
+                return {
+                    'matched_response': 'Yes',
+                    'next_question': self.get_question_by_number(5),  # Go to Q5
+                    'guidance': ['They admit to lying. What do you call someone who lies? A liar.'],
+                    'confidence': 90
+                }
+            elif any(word in spoken_lower for word in ['no', 'nope', 'nah', 'never', 'not']):
+                return {
+                    'matched_response': 'No',
+                    'next_question': self.get_question_by_number(5),  # Still go to Q5
+                    'guidance': ['They say they never lied. You could say they are telling a lie right now.'],
+                    'confidence': 90
+                }
+        
+        # Question 5: "Have you ever used bad language?"
+        elif "used bad language" in question_lower:
+            if any(word in spoken_lower for word in ['yes', 'yeah', 'yep', 'swear', 'curse', 'bad language']):
+                return {
+                    'matched_response': 'Yes',
+                    'next_question': self.get_question_by_number(6),  # Go to Q6
+                    'guidance': ['They admit to using bad language. What do you call someone who uses bad language? A blasphemer.'],
+                    'confidence': 90
+                }
+            elif any(word in spoken_lower for word in ['no', 'nope', 'nah', 'never', 'not']):
+                return {
+                    'matched_response': 'No',
+                    'next_question': self.get_question_by_number(6),  # Still go to Q6
+                    'guidance': ['They say they never used bad language. Continue to question 6.'],
+                    'confidence': 90
+                }
+        
+        # Default fallback
+        return None
+
+    def get_question_by_number(self, question_number):
+        """Get a specific question by number"""
+        if 1 <= question_number <= len(self.conversation_flow):
+            return self.conversation_flow[question_number - 1]['question']
+        return "End of script reached"
+
     def process_audio_text(self, audio_text):
         """Process the audio text and find matches"""
         if not audio_text or not isinstance(audio_text, str):

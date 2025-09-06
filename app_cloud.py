@@ -384,6 +384,90 @@ def create_speech_recognition_component():
     """
     return html_code
 
+def get_suggested_answers(question):
+    """Get suggested answers based on the current question"""
+    question_lower = question.lower()
+    
+    # Question 1: "What do you think happens to us after we die?"
+    if "what do you think happens to us after we die" in question_lower:
+        return [
+            "I don't know",
+            "We go to heaven",
+            "Heaven and hell",
+            "Reincarnation",
+            "Nothing happens"
+        ]
+    
+    # Question 2: "Do you believe there's a God?"
+    elif "do you believe there's a god" in question_lower:
+        return [
+            "Yes",
+            "No",
+            "I believe in God",
+            "I'm not sure",
+            "I don't believe"
+        ]
+    
+    # Question 3: "Since we know there is a God, it matters how we live. So, do you think you are a good person?"
+    elif "are a good person" in question_lower:
+        return [
+            "Yes",
+            "No",
+            "I try to be good",
+            "I'm a decent person",
+            "I'm not perfect"
+        ]
+    
+    # Question 4: "Have you ever told a lie?"
+    elif "told a lie" in question_lower:
+        return [
+            "Yes",
+            "No",
+            "Maybe",
+            "I don't remember",
+            "Everyone lies"
+        ]
+    
+    # Question 5: "Have you ever used bad language?"
+    elif "used bad language" in question_lower:
+        return [
+            "Yes",
+            "No",
+            "Sometimes",
+            "Everyone does",
+            "Not really"
+        ]
+    
+    # Question 6: "Have you ever been angry or disrespected someone?"
+    elif "angry or disrespected" in question_lower:
+        return [
+            "Yes",
+            "No",
+            "Maybe",
+            "Everyone gets angry",
+            "I try not to"
+        ]
+    
+    # Question 7: "We've all done these things and so if God was to judge you based on these things would you be innocent or guilty?"
+    elif "innocent or guilty" in question_lower:
+        return [
+            "Guilty",
+            "Innocent",
+            "I don't know",
+            "It depends",
+            "Maybe guilty"
+        ]
+    
+    # Default suggestions for other questions
+    else:
+        return [
+            "Yes",
+            "No",
+            "I don't know",
+            "Maybe",
+            "I'm not sure"
+        ]
+
 def main():
     st.set_page_config(
         page_title="Smart Script Follower",
@@ -435,6 +519,23 @@ def main():
     # Input Section
     st.header("✍️ Type Their Response")
     text_input = st.text_input("What did they say?", key="response_input", placeholder="Type their answer here...")
+    
+    # Show suggested answers based on current question
+    current_pos = st.session_state.script_follower.current_position
+    if current_pos < len(st.session_state.script_follower.conversation_flow):
+        current_question = st.session_state.script_follower.conversation_flow[current_pos]['question']
+        suggested_answers = get_suggested_answers(current_question)
+        
+        if suggested_answers:
+            st.write("**💡 Suggested answers (click to use):**")
+            cols = st.columns(min(len(suggested_answers), 3))
+            for i, answer in enumerate(suggested_answers):
+                with cols[i % 3]:
+                    if st.button(f"📝 {answer}", key=f"suggest_{i}", use_container_width=True):
+                        response = st.session_state.script_follower.process_audio_text(answer)
+                        if response:
+                            st.session_state.latest_response = response
+                            st.rerun()
     
     col_btn1, col_btn2 = st.columns(2)
     
