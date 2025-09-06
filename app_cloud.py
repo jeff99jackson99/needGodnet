@@ -17,6 +17,7 @@ import queue
 import io
 import PyPDF2
 import logging
+import streamlit.components.v1 as components
 
 # Configure logging
 def setup_logging():
@@ -81,7 +82,8 @@ class GitHubScriptManager:
 
 class ScriptFollower:
     def __init__(self):
-        # Initialize without microphone for cloud deployment
+        # Initialize with speech recognition for cloud deployment
+        self.recognizer = sr.Recognizer()
         self.script_data = {}
         self.is_listening = False
         self.results_queue = queue.Queue()
@@ -89,6 +91,7 @@ class ScriptFollower:
         self.phrase_buffer = deque(maxlen=10)
         self.confidence_threshold = 60
         self.response_delay = 0.1
+        self.listening_thread = None
         
         # Cloud storage paths
         self.data_path = "/tmp/script-follower/data"
@@ -252,6 +255,131 @@ class ScriptFollower:
             f.write(json.dumps(log_entry) + '\n')
         
         logger.info(f"Interaction logged: {confidence}% confidence")
+    
+    def start_listening(self):
+        """Start the listening process"""
+        if not self.is_listening:
+            self.is_listening = True
+            st.session_state.is_listening = True
+            logger.info("Listening started")
+    
+    def stop_listening(self):
+        """Stop the listening process"""
+        self.is_listening = False
+        st.session_state.is_listening = False
+        logger.info("Listening stopped")
+    
+    def process_audio_text(self, audio_text):
+        """Process audio text and find matches"""
+        if not audio_text or len(audio_text.strip()) < 3:
+            return
+        
+        self.phrase_buffer.append(audio_text)
+        self.current_phrase = " ".join(list(self.phrase_buffer))
+        
+        # Find best match
+        match, score = self.find_best_match(self.current_phrase)
+        
+        # Log interaction
+        self.log_interaction(self.current_phrase, match, score)
+        
+        if match:
+            self.results_queue.put({
+                'spoken': self.current_phrase,
+                'matched_line': match[0],
+                'response': match[1]['response'],
+                'speaker': match[1]['speaker'],
+                'confidence': score,
+                'timestamp': time.time()
+            })
+            
+            # Clear buffer after successful match
+            self.phrase_buffer.clear()
+            self.current_phrase = ""
+
+def create_speech_recognition_component():
+    """Create HTML component for speech recognition"""
+    html_code = """
+    <div id="speech-recognition">
+        <button id="startBtn" onclick="startListening()">🎤 Start Listening</button>
+        <button id="stopBtn" onclick="stopListening()" disabled>⏹️ Stop Listening</button>
+        <div id="status">Click "Start Listening" to begin</div>
+        <div id="transcript"></div>
+    </div>
+
+    <script>
+        let recognition;
+        let isListening = false;
+
+        function startListening() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                document.getElementById('status').innerHTML = 'Speech recognition not supported in this browser';
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function() {
+                isListening = true;
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('status').innerHTML = '🎧 Listening... Speak now!';
+            };
+
+            recognition.onresult = function(event) {
+                let finalTranscript = '';
+                let interimTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                document.getElementById('transcript').innerHTML = 
+                    '<strong>Final:</strong> ' + finalTranscript + '<br>' +
+                    '<em>Interim:</em> ' + interimTranscript;
+
+                // Send final transcript to Streamlit
+                if (finalTranscript) {
+                    window.parent.postMessage({
+                        type: 'streamlit:setComponentValue',
+                        value: finalTranscript
+                    }, '*');
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                document.getElementById('status').innerHTML = 'Error: ' + event.error;
+            };
+
+            recognition.onend = function() {
+                isListening = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('status').innerHTML = 'Stopped listening';
+            };
+
+            recognition.start();
+        }
+
+        function stopListening() {
+            if (recognition && isListening) {
+                recognition.stop();
+            }
+        }
+    </script>
+    """
+    return html_code
 
 def main():
     st.set_page_config(
@@ -269,6 +397,9 @@ def main():
     
     if 'script_loaded' not in st.session_state:
         st.session_state.script_loaded = False
+    
+    if 'is_listening' not in st.session_state:
+        st.session_state.is_listening = False
     
     # Sidebar for controls
     with st.sidebar:
@@ -364,13 +495,23 @@ def main():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        st.header("📝 Script Matching")
+        st.header("🎤 Live Speech Recognition")
         
         if st.session_state.script_loaded:
             st.success(f"✅ Script loaded with {len(st.session_state.script_data)} lines")
             
+            # Speech Recognition Component
+            st.subheader("Voice Input")
+            audio_text = components.html(create_speech_recognition_component(), height=200)
+            
+            # Process audio text if received
+            if audio_text:
+                st.session_state.script_follower.process_audio_text(audio_text)
+                st.write(f"**You said:** {audio_text}")
+            
             # Manual text input for testing
-            test_input = st.text_area("Enter text to match against script:", height=100)
+            st.subheader("Manual Text Input")
+            test_input = st.text_area("Or enter text manually:", height=100)
             if st.button("Find Match"):
                 if test_input:
                     match, score = st.session_state.script_follower.find_best_match(test_input)
@@ -389,8 +530,39 @@ def main():
                     st.warning("Please enter some text to test")
         else:
             st.info("Load a script first to start matching")
+            
+        # Display recent phrases
+        if st.session_state.script_follower.phrase_buffer:
+            st.subheader("Recent Phrases")
+            for i, phrase in enumerate(reversed(list(st.session_state.script_follower.phrase_buffer))):
+                st.text(f"{i+1}. {phrase}")
     
     with col2:
+        st.header("📝 Live Script Responses")
+        
+        # Display matches in real-time
+        if st.session_state.script_loaded:
+            # Process results queue
+            while not st.session_state.script_follower.results_queue.empty():
+                try:
+                    result = st.session_state.script_follower.results_queue.get_nowait()
+                    
+                    st.success(f"🎯 **Match Found!** (Confidence: {result['confidence']}%)")
+                    st.write(f"**You said:** {result['spoken']}")
+                    st.write(f"**Script line:** {result['matched_line']}")
+                    st.write(f"**Response:** {result['response']}")
+                    st.write(f"**Speaker:** {result['speaker']}")
+                    st.write("---")
+                    
+                except queue.Empty:
+                    break
+            
+            # Auto-refresh for real-time updates
+            time.sleep(0.1)
+            st.rerun()
+        else:
+            st.info("Load a script first to see responses")
+        
         st.header("📖 Script Preview")
         
         if st.session_state.script_loaded:
