@@ -269,14 +269,22 @@ class EvangelismScriptFollower:
                     
                     # Move to next question after getting a response
                     self.current_position = min(self.current_position + 1, len(self.conversation_flow) - 1)
+                    # Get the next question for guidance
+                    next_q = self.get_next_question()
+                    
+                    # Enhance guidance with next question
+                    enhanced_guidance = current_item['guidance'].copy()
+                    if next_q and next_q != "End of script reached":
+                        enhanced_guidance.append(f"NEXT QUESTION TO ASK: {next_q}")
+                    
                     return {
                         'type': 'response_match',
                         'question_number': current_item['question_number'],
                         'question': current_item['question'],
                         'matched_response': response,
-                        'guidance': current_item['guidance'],
+                        'guidance': enhanced_guidance,
                         'confidence': max(ratio, 85),  # Boost confidence for variations
-                        'next_question': self.get_next_question()
+                        'next_question': next_q
                     }
         
         return None
