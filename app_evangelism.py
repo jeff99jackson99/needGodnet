@@ -166,9 +166,19 @@ class EvangelismScriptFollower:
                 'responses': ['Yes.', 'No.'],
                 'guidance': [
                     'If they say no, ask: "Would you agree that the building I\'m sitting in had a builder, or did it just appear by itself?"',
-                    'This building is evidence that it needed a builder. In the same way, the universe is evidence that it needed a Creator.'
+                    'This building is evidence that it needed a builder. In the same way, the universe is evidence that it needed a Creator.',
+                    'Wait for their answer, then if they still refuse to believe, go to Q5.'
                 ],
                 'question_number': 2
+            },
+            {
+                'question': '2b. Building Analogy: "Would you agree that the building I\'m sitting in had a builder, or did it just appear by itself?"',
+                'responses': ['Yes.', 'No.', 'I agree.'],
+                'guidance': [
+                    'If they agree, say: "This building is evidence that it needed a builder. In the same way, when we look at the universe we know it had a beginning therefore it had to have a creator for it. The universe is proof of a universe maker. Buildings need builders, creation needs a creator agree?"',
+                    'If they still refuse to believe, go to Q5.'
+                ],
+                'question_number': 2.5
             },
             {
                 'question': '3. Since we know there is a God, it matters how we live. So, do you think you are a good person?',
@@ -421,11 +431,15 @@ class EvangelismScriptFollower:
                     'guidance': ['They believe in God. Proceed to the next question.'],
                     'confidence': 90
                 }
-            elif any(word in spoken_lower for word in ['no', 'nope', 'nah', 'dont', "don't", 'not']):
+            elif any(word in spoken_lower for word in ['no', 'nope', 'nah', 'dont', "don't", 'not', 'believe']):
                 return {
                     'matched_response': 'No',
-                    'next_question': self.get_question_by_number(5),  # Go to Q5 (as per script)
-                    'guidance': ['They do not believe in God. Ask about the building analogy and if they still refuse, go to Q5.'],
+                    'next_question': '2b. Building Analogy: "Would you agree that the building I\'m sitting in had a builder, or did it just appear by itself?"',
+                    'guidance': [
+                        'If they say no, ask: "Would you agree that the building I\'m sitting in had a builder, or did it just appear by itself?"',
+                        'This building is evidence that it needed a builder. In the same way, the universe is evidence that it needed a Creator.',
+                        'Wait for their answer, then if they still refuse to believe, go to Q5.'
+                    ],
                     'confidence': 90
                 }
             elif any(word in spoken_lower for word in ['not sure', 'dont know', "don't know", 'unsure', 'maybe']):
@@ -433,6 +447,29 @@ class EvangelismScriptFollower:
                     'matched_response': 'Not sure',
                     'next_question': self.get_question_by_number(3),  # Go to Q3 (as per script guidance)
                     'guidance': ['They are not sure about God. Proceed to the next question.'],
+                    'confidence': 90
+                }
+        
+        # Question 2b: Building Analogy
+        elif "building analogy" in question_lower or "building i'm sitting in" in question_lower:
+            if any(word in spoken_lower for word in ['yes', 'yeah', 'yep', 'agree', 'builder', 'had a builder']):
+                return {
+                    'matched_response': 'Yes',
+                    'next_question': self.get_question_by_number(3),  # Go to Q3
+                    'guidance': [
+                        'If they agree, say: "This building is evidence that it needed a builder. In the same way, when we look at the universe we know it had a beginning therefore it had to have a creator for it. The universe is proof of a universe maker. Buildings need builders, creation needs a creator agree?"',
+                        'Now proceed to Q3 since they understand the concept of a creator.'
+                    ],
+                    'confidence': 90
+                }
+            elif any(word in spoken_lower for word in ['no', 'nope', 'nah', 'dont', "don't", 'not', 'disagree']):
+                return {
+                    'matched_response': 'No',
+                    'next_question': self.get_question_by_number(5),  # Go to Q5
+                    'guidance': [
+                        'If they still refuse to believe, go to Q5.',
+                        'They are not cooperating with the building analogy, so move on to other questions.'
+                    ],
                     'confidence': 90
                 }
         
