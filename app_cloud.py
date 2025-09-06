@@ -423,7 +423,7 @@ def main():
         audio_text = components.html(create_smart_speech_component(), height=300)
         
         # Process audio text if received
-        if audio_text:
+        if audio_text and str(audio_text).strip():
             response = st.session_state.script_follower.process_audio_text(audio_text)
             if response:
                 st.session_state.latest_response = response

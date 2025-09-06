@@ -279,9 +279,11 @@ class SmartScriptFollower:
     
     def process_audio_text(self, audio_text):
         """Process audio text and find matches with ultra-fast response"""
-        if not audio_text or len(audio_text.strip()) < 2:
+        if not audio_text or not isinstance(audio_text, str) or len(str(audio_text).strip()) < 2:
             return
         
+        # Convert to string and clean
+        audio_text = str(audio_text).strip()
         self.phrase_buffer.append(audio_text)
         self.current_phrase = " ".join(list(self.phrase_buffer))
         
