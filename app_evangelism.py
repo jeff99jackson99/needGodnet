@@ -529,10 +529,34 @@ class EvangelismScriptFollower:
                 # Update current position based on intelligent match's next_question
                 next_q_text = intelligent_match['next_question']
                 if next_q_text and next_q_text != "End of script reached":
+                    # Try exact match first
+                    found = False
                     for i, item in enumerate(self.conversation_flow):
                         if item['question'] == next_q_text:
                             self.current_position = i
+                            found = True
                             break
+                    
+                    # If exact match fails, try fuzzy match for building analogy
+                    if not found and "building analogy" in next_q_text.lower():
+                        for i, item in enumerate(self.conversation_flow):
+                            if "building analogy" in item['question'].lower():
+                                self.current_position = i
+                                found = True
+                                break
+                    
+                    # If still not found, try to find by question number
+                    if not found:
+                        # Extract question number from next_q_text if possible
+                        import re
+                        q_match = re.search(r'q(\d+(?:\.\d+)?)', next_q_text.lower())
+                        if q_match:
+                            target_q_num = float(q_match.group(1))
+                            for i, item in enumerate(self.conversation_flow):
+                                if item.get('question_number') == target_q_num:
+                                    self.current_position = i
+                                    found = True
+                                    break
                 return {
                     'type': 'response_match',
                     'question_number': current_item['question_number'],
