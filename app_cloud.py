@@ -414,120 +414,63 @@ def main():
         st.error("❌ Script not loaded. Please check the needgodscript.pdf file.")
         return
     
-    # Main content area
-    col1, col2 = st.columns([1, 1])
+    # Current Question Display
+    st.header("📍 Current Question")
+    current_pos = st.session_state.script_follower.current_position
+    if current_pos < len(st.session_state.script_follower.conversation_flow):
+        current_question = st.session_state.script_follower.conversation_flow[current_pos]['question']
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 3px solid #2196f3;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 10px 0;
+            box-shadow: 0 8px 16px rgba(33,150,243,0.2);
+        ">
+            <h3 style="color: #0d47a1; margin-top: 0;">{current_question}</h3>
+        </div>
+        """, unsafe_allow_html=True)
     
-    with col1:
-        st.header("🎤 Conversation Listener")
-        
-        # Input Options
-        st.subheader("Input Options")
-        
-        # Text input option
-        st.write("**Type their response:**")
-        text_input = st.text_input("Enter their response:", key="response_input", placeholder="Type what they said (e.g., 'I don't know', 'Not sure', 'Yes', 'No')")
-        
-        col_btn1, col_btn2 = st.columns(2)
-        
-        with col_btn1:
-            if st.button("Process Response", type="primary"):
-                if text_input and text_input.strip():
-                    response = st.session_state.script_follower.process_audio_text(text_input.strip())
-                    if response:
-                        st.session_state.latest_response = response
-                        st.rerun()
-        
-        with col_btn2:
-            if st.button("Test: 'I don't know'"):
-                response = st.session_state.script_follower.process_audio_text("I don't know")
-                if response:
-                    st.session_state.latest_response = response
-                    st.rerun()
-        
-        st.write("---")
-        
-        # Speech Recognition Component
-        st.subheader("Voice Input (Alternative)")
-        audio_text = components.html(create_evangelism_speech_component(), height=300)
-
-        # Process audio text if received
-        if audio_text and str(audio_text).strip():
-            response = st.session_state.script_follower.process_audio_text(audio_text)
+    # Input Section
+    st.header("✍️ Type Their Response")
+    text_input = st.text_input("What did they say?", key="response_input", placeholder="Type their answer here...")
+    
+    if st.button("Process Response", type="primary", use_container_width=True):
+        if text_input and text_input.strip():
+            response = st.session_state.script_follower.process_audio_text(text_input.strip())
             if response:
                 st.session_state.latest_response = response
-        
-        # Display recent phrases
-        if st.session_state.script_follower.phrase_buffer:
-            st.subheader("Recent Phrases")
-            for i, phrase in enumerate(reversed(list(st.session_state.script_follower.phrase_buffer))):
-                st.text(f"{i+1}. {phrase}")
+                st.rerun()
     
-    with col2:
-        st.header("📝 Script Guidance")
-        
-        # Display the latest response prominently
-        if 'latest_response' in st.session_state and st.session_state.latest_response:
-            response = st.session_state.latest_response
-            
-            # Debug: Show what we're trying to display
-            st.write("**DEBUG - Response data:**")
-            st.write(f"Type: {response.get('type', 'unknown')}")
-            st.write(f"Guidance: {response.get('guidance', [])}")
-            st.write(f"Next question: {response.get('next_question', 'none')}")
-            
-            # Create a prominent response display
-            if response['type'] == 'question_asked':
-                st.markdown("### 🎤 **QUESTION ASKED!**")
-                # Question box with different styling
-                st.markdown(f"""
-                <div style="
-                    background: linear-gradient(135deg, #cce5ff 0%, #b3d9ff 100%);
-                    border: 3px solid #007bff;
-                    border-radius: 15px;
-                    padding: 20px;
-                    margin: 10px 0;
-                    box-shadow: 0 8px 16px rgba(0,123,255,0.2);
-                ">
-                    <h4 style="color: #004085; margin-top: 0;">📊 Confidence: {response['confidence']}%</h4>
-                    <p style="font-size: 16px; margin: 10px 0;"><strong>Question #{response['question_number']} asked:</strong> {response['question']}</p>
-                    <p style="font-size: 16px; margin: 10px 0;"><strong>Status:</strong> Waiting for response...</p>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown("### 🎯 **SCRIPT GUIDANCE!**")
-                # Response box with styling
-                st.markdown(f"""
-                <div style="
-                    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-                    border: 3px solid #28a745;
-                    border-radius: 15px;
-                    padding: 20px;
-                    margin: 10px 0;
-                    box-shadow: 0 8px 16px rgba(40,167,69,0.2);
-                ">
-                    <h4 style="color: #155724; margin-top: 0;">📊 Confidence: {response['confidence']}%</h4>
-                    <p style="font-size: 18px; margin: 15px 0; font-weight: bold; color: #155724;">WHAT THEY SAID: "{response['matched_response']}"</p>
-                    <p style="font-size: 16px; margin: 10px 0;"><strong>Script says:</strong> {' '.join(response['guidance'][:2]) if response['guidance'] else 'No specific guidance'}</p>
-                    <p style="font-size: 18px; margin: 15px 0; font-weight: bold; color: #155724;">WHAT TO SAY NEXT: {response['next_question'] if response['next_question'] and response['next_question'] != 'End of script reached' else 'End of script'}</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Fallback simple display
-                st.write("---")
-                st.write("**SIMPLE FORMAT:**")
-                st.write(f"**WHAT THEY SAID:** {response['matched_response']}")
-                st.write(f"**SCRIPT SAYS:** {' '.join(response['guidance'][:2]) if response['guidance'] else 'No guidance'}")
-                st.write(f"**WHAT TO SAY NEXT:** {response['next_question'] if response['next_question'] and response['next_question'] != 'End of script reached' else 'End of script'}")
-        
-        # Display response history
-        if st.session_state.script_follower.response_history:
-            st.subheader("📚 Conversation History")
-            for i, response in enumerate(reversed(list(st.session_state.script_follower.response_history))):
-                with st.expander(f"Response {len(st.session_state.script_follower.response_history) - i}: {response['matched_response'][:50]}..."):
-                    st.write(f"**Confidence:** {response['confidence']}%")
-                    st.write(f"**Question #{response['question_number']}:** {response['question']}")
-                    st.write(f"**Guidance:** {' '.join(response['guidance'][:3]) if response['guidance'] else 'No specific guidance'}")
-                    st.write(f"**Next Question:** {response['next_question'] if response['next_question'] and response['next_question'] != 'End of script reached' else 'End of script'}")
+    # Show guidance if available
+    if 'latest_response' in st.session_state and st.session_state.latest_response:
+        response = st.session_state.latest_response
+        if response['type'] == 'response_match':
+            st.markdown("### 🎯 **Script Guidance**")
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+                border: 3px solid #28a745;
+                border-radius: 15px;
+                padding: 20px;
+                margin: 10px 0;
+                box-shadow: 0 8px 16px rgba(40,167,69,0.2);
+            ">
+                <p style="font-size: 16px; margin: 10px 0;"><strong>They said:</strong> "{response['matched_response']}"</p>
+                <p style="font-size: 16px; margin: 10px 0;"><strong>Script guidance:</strong> {' '.join(response['guidance'][:2]) if response['guidance'] else 'No specific guidance'}</p>
+                <p style="font-size: 18px; margin: 15px 0; font-weight: bold; color: #155724;"><strong>Next question:</strong> {response['next_question'] if response['next_question'] and response['next_question'] != 'End of script reached' else 'End of script'}</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Conversation History
+    if st.session_state.script_follower.response_history:
+        st.header("📚 Conversation History")
+        for i, response in enumerate(reversed(list(st.session_state.script_follower.response_history))):
+            with st.expander(f"Q{response['question_number']}: {response['matched_response']}"):
+                st.write(f"**Question:** {response['question']}")
+                st.write(f"**They said:** {response['matched_response']}")
+                st.write(f"**Next:** {response['next_question'] if response['next_question'] and response['next_question'] != 'End of script reached' else 'End of script'}")
     
     # Settings and statistics
     with st.expander("⚙️ Settings & Statistics"):
