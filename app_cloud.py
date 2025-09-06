@@ -438,10 +438,19 @@ def main():
     
     if st.button("Process Response", type="primary", use_container_width=True):
         if text_input and text_input.strip():
+            # Debug: Show current position and available responses
+            current_pos = st.session_state.script_follower.current_position
+            if current_pos < len(st.session_state.script_follower.conversation_flow):
+                current_item = st.session_state.script_follower.conversation_flow[current_pos]
+                st.write(f"**DEBUG:** Current position: {current_pos + 1}")
+                st.write(f"**DEBUG:** Available responses: {current_item['responses']}")
+            
             response = st.session_state.script_follower.process_audio_text(text_input.strip())
             if response:
                 st.session_state.latest_response = response
                 st.rerun()
+            else:
+                st.write("**DEBUG:** No response match found")
     
     # Show guidance if available
     if 'latest_response' in st.session_state and st.session_state.latest_response:

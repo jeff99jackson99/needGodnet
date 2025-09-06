@@ -118,8 +118,8 @@ class EvangelismScriptFollower:
             # Look for responses (short answers like "Yes..", "Not sure.")
             elif current_question and line and not in_guidance_section:
                 if (line.endswith('..') or 
-                    line in ['Yes', 'No', 'Not sure', 'Sure', 'Not sure.'] or
-                    line.lower() in ['yes', 'no', 'not sure', 'sure', 'i don\'t know', 'i don\'t know.']):
+                    line in ['Yes', 'No', 'Not sure', 'Sure', 'Not sure.', 'Yes.', 'No.'] or
+                    line.lower() in ['yes', 'no', 'not sure', 'sure', 'i don\'t know', 'i don\'t know.', 'yes.', 'no.']):
                     current_responses.append(line)
                 elif 'If they say' in line or 'ask:' in line or 'proceed to' in line or len(line) > 30:
                     # This is guidance text
@@ -250,7 +250,12 @@ class EvangelismScriptFollower:
                     (spoken_lower in ['i don\'t know', 'i don\'t know.', 'dunno', 'i dunno'] and 
                      'not sure' in response_lower) or
                     ('not sure' in spoken_lower and 
-                     response_lower in ['i don\'t know', 'i don\'t know.', 'dunno'])):
+                     response_lower in ['i don\'t know', 'i don\'t know.', 'dunno']) or
+                    # Yes/No variations
+                    (spoken_lower in ['yes', 'yes.', 'yeah', 'yep'] and 
+                     response_lower in ['yes', 'yes.']) or
+                    (spoken_lower in ['no', 'no.', 'nope', 'nah'] and 
+                     response_lower in ['no', 'no.'])):
                     
                     # Move to next question after getting a response
                     self.current_position = min(self.current_position + 1, len(self.conversation_flow) - 1)
