@@ -436,8 +436,27 @@ def main():
     st.header("✍️ Type Their Response")
     text_input = st.text_input("What did they say?", key="response_input", placeholder="Type their answer here...")
     
-    if st.button("Process Response", type="primary", use_container_width=True):
-        if text_input and text_input.strip():
+    col_btn1, col_btn2 = st.columns(2)
+    
+    with col_btn1:
+        if st.button("Process Response", type="primary", use_container_width=True):
+            if text_input and text_input.strip():
+                # Debug: Show current position and available responses
+                current_pos = st.session_state.script_follower.current_position
+                if current_pos < len(st.session_state.script_follower.conversation_flow):
+                    current_item = st.session_state.script_follower.conversation_flow[current_pos]
+                    st.write(f"**DEBUG:** Current position: {current_pos + 1}")
+                    st.write(f"**DEBUG:** Available responses: {current_item['responses']}")
+                
+                response = st.session_state.script_follower.process_audio_text(text_input.strip())
+                if response:
+                    st.session_state.latest_response = response
+                    st.rerun()
+                else:
+                    st.write("**DEBUG:** No response match found")
+    
+    with col_btn2:
+        if st.button("Test: 'we go to heaven'", use_container_width=True):
             # Debug: Show current position and available responses
             current_pos = st.session_state.script_follower.current_position
             if current_pos < len(st.session_state.script_follower.conversation_flow):
@@ -445,7 +464,7 @@ def main():
                 st.write(f"**DEBUG:** Current position: {current_pos + 1}")
                 st.write(f"**DEBUG:** Available responses: {current_item['responses']}")
             
-            response = st.session_state.script_follower.process_audio_text(text_input.strip())
+            response = st.session_state.script_follower.process_audio_text("we go to heaven")
             if response:
                 st.session_state.latest_response = response
                 st.rerun()

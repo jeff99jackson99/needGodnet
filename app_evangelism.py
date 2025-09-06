@@ -255,7 +255,10 @@ class EvangelismScriptFollower:
                     (spoken_lower in ['yes', 'yes.', 'yeah', 'yep'] and 
                      response_lower in ['yes', 'yes.']) or
                     (spoken_lower in ['no', 'no.', 'nope', 'nah'] and 
-                     response_lower in ['no', 'no.'])):
+                     response_lower in ['no', 'no.']) or
+                    # Heaven/God belief variations (treat as "Yes" to believing in God)
+                    (response_lower in ['yes', 'yes.'] and 
+                     any(word in spoken_lower for word in ['heaven', 'god', 'believe', 'creator', 'jesus', 'christ']))):
                     
                     # Move to next question after getting a response
                     self.current_position = min(self.current_position + 1, len(self.conversation_flow) - 1)
