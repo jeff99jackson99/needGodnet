@@ -221,7 +221,23 @@ class EvangelismScriptFollower:
         
         spoken_lower = spoken_text.lower()
         
-        # First, try to match against current question responses
+        # First, check if this is a question being asked (person asking the question)
+        for item in self.conversation_flow:
+            question_lower = item['question'].lower()
+            if fuzz.ratio(spoken_lower, question_lower) > self.confidence_threshold:
+                # This is a question being asked, update current position
+                self.current_position = item['question_number'] - 1
+                return {
+                    'type': 'question_asked',
+                    'question_number': item['question_number'],
+                    'question': item['question'],
+                    'matched_response': 'Question asked',
+                    'guidance': ['Waiting for response...'],
+                    'confidence': fuzz.ratio(spoken_lower, question_lower),
+                    'next_question': None
+                }
+        
+        # Then, try to match against current question responses (person answering)
         if self.current_position < len(self.conversation_flow):
             current_item = self.conversation_flow[self.current_position]
             
@@ -229,6 +245,8 @@ class EvangelismScriptFollower:
             for response in current_item['responses']:
                 response_lower = response.lower()
                 if fuzz.ratio(spoken_lower, response_lower) > self.confidence_threshold:
+                    # Move to next question after getting a response
+                    self.current_position = min(self.current_position + 1, len(self.conversation_flow) - 1)
                     return {
                         'type': 'response_match',
                         'question_number': current_item['question_number'],
@@ -238,20 +256,6 @@ class EvangelismScriptFollower:
                         'confidence': fuzz.ratio(spoken_lower, response_lower),
                         'next_question': self.get_next_question()
                     }
-        
-        # If no match found, try to find any question that matches
-        for item in self.conversation_flow:
-            question_lower = item['question'].lower()
-            if fuzz.ratio(spoken_lower, question_lower) > self.confidence_threshold:
-                return {
-                    'type': 'question_match',
-                    'question_number': item['question_number'],
-                    'question': item['question'],
-                    'matched_response': 'Question recognized',
-                    'guidance': item['guidance'],
-                    'confidence': fuzz.ratio(spoken_lower, question_lower),
-                    'next_question': None
-                }
         
         return None
 
@@ -277,10 +281,6 @@ class EvangelismScriptFollower:
         match = self.find_best_match(audio_text)
         
         if match:
-            # Update current position if it's a response match
-            if match['type'] == 'response_match':
-                self.current_position = match['question_number']
-            
             # Log the interaction
             self.log_interaction(audio_text, match)
             

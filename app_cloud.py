@@ -444,24 +444,41 @@ def main():
             response = st.session_state.latest_response
             
             # Create a prominent response display
-            st.markdown("### 🎯 **SCRIPT MATCH FOUND!**")
-
-            # Response box with styling
-            st.markdown(f"""
-            <div style="
-                background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-                border: 3px solid #28a745;
-                border-radius: 15px;
-                padding: 20px;
-                margin: 10px 0;
-                box-shadow: 0 8px 16px rgba(40,167,69,0.2);
-            ">
-                <h4 style="color: #155724; margin-top: 0;">📊 Confidence: {response['confidence']}%</h4>
-                <p style="font-size: 16px; margin: 10px 0;"><strong>You heard:</strong> {response['matched_response']}</p>
-                <p style="font-size: 16px; margin: 10px 0;"><strong>Question #{response['question_number']}:</strong> {response['question']}</p>
-                <p style="font-size: 16px; margin: 10px 0;"><strong>Guidance:</strong> {response['guidance'][0] if response['guidance'] else 'No specific guidance'}</p>
-            </div>
-            """, unsafe_allow_html=True)
+            if response['type'] == 'question_asked':
+                st.markdown("### 🎤 **QUESTION ASKED!**")
+                # Question box with different styling
+                st.markdown(f"""
+                <div style="
+                    background: linear-gradient(135deg, #cce5ff 0%, #b3d9ff 100%);
+                    border: 3px solid #007bff;
+                    border-radius: 15px;
+                    padding: 20px;
+                    margin: 10px 0;
+                    box-shadow: 0 8px 16px rgba(0,123,255,0.2);
+                ">
+                    <h4 style="color: #004085; margin-top: 0;">📊 Confidence: {response['confidence']}%</h4>
+                    <p style="font-size: 16px; margin: 10px 0;"><strong>Question #{response['question_number']} asked:</strong> {response['question']}</p>
+                    <p style="font-size: 16px; margin: 10px 0;"><strong>Status:</strong> Waiting for response...</p>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown("### 🎯 **RESPONSE MATCHED!**")
+                # Response box with styling
+                st.markdown(f"""
+                <div style="
+                    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+                    border: 3px solid #28a745;
+                    border-radius: 15px;
+                    padding: 20px;
+                    margin: 10px 0;
+                    box-shadow: 0 8px 16px rgba(40,167,69,0.2);
+                ">
+                    <h4 style="color: #155724; margin-top: 0;">📊 Confidence: {response['confidence']}%</h4>
+                    <p style="font-size: 16px; margin: 10px 0;"><strong>You heard:</strong> {response['matched_response']}</p>
+                    <p style="font-size: 16px; margin: 10px 0;"><strong>Question #{response['question_number']}:</strong> {response['question']}</p>
+                    <p style="font-size: 16px; margin: 10px 0;"><strong>Guidance:</strong> {' '.join(response['guidance'][:2]) if response['guidance'] else 'No specific guidance'}</p>
+                </div>
+                """, unsafe_allow_html=True)
         
         # Display response history
         if st.session_state.script_follower.response_history:
