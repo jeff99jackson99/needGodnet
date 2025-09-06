@@ -149,11 +149,11 @@ class EvangelismScriptFollower:
         return conversation_flow
 
     def create_sample_evangelism_script(self):
-        """Create a sample evangelism script for testing"""
+        """Create the complete evangelism script with all 39 questions"""
         return [
             {
                 'question': '1. What do you think happens to us after we die?',
-                'responses': ['Not sure.', 'Heaven and hell.', 'Reincarnation.'],
+                'responses': ['Not sure.', 'Heaven and hell.', 'Reincarnation.', 'Nothing happens.'],
                 'guidance': [
                     'If they say reincarnation or any other theory, usually it\'s best to go straight on to asking them the next question.',
                     'If they say heaven and hell, ask if they think they will go to heaven and why and SKIP question 2.',
@@ -184,7 +184,7 @@ class EvangelismScriptFollower:
                 'question': '3. Since we know there is a God, it matters how we live. So, do you think you are a good person?',
                 'responses': ['Yes.', 'No.'],
                 'guidance': [
-                    'If they say No, you can thank them for their honesty and explain how we have all done things wrong.',
+                    'If they say No, you can thank them for their honesty and explain how we have all done things wrong - give examples: lying, taking things we shouldn\'t have, being angry, using bad language. Then move to question 7.',
                     'If they say Yes, proceed to question 4.'
                 ],
                 'question_number': 3
@@ -206,6 +206,287 @@ class EvangelismScriptFollower:
                     'Always make sure before moving forward you get a "YES" answer to either Q4, 5 or 6.'
                 ],
                 'question_number': 5
+            },
+            {
+                'question': '6. Have you ever been angry or disrespected someone?',
+                'responses': ['Yes.', 'No.'],
+                'guidance': [
+                    'What do you call someone who gets angry or disrespects others?',
+                    'Always make sure before moving forward you get a "YES" answer to either Q4, 5 or 6.'
+                ],
+                'question_number': 6
+            },
+            {
+                'question': '7. We\'ve all done these things and so if God was to judge you based on these things would you be innocent or guilty?',
+                'responses': ['Guilty.', 'Innocent.'],
+                'guidance': [
+                    'If they say innocent, give them the definition: Innocent means you\'ve never done anything wrong your whole life, and guilty means you\'ve done at least one bad thing - so which one would you be?',
+                    'Some people will try and squeeze out of their situation either here or the next question by giving a solution like \'but I make sure to ask for forgiveness\' or \'But God is forgiving\' or \'But I am trying to do better\'. Which you could respond with giving the courtroom analogy, or simply \'but we are still guilty of what we have done wrong and so...(move to next question).'
+                ],
+                'question_number': 7
+            },
+            {
+                'question': '8. So would we deserve a reward or punishment?',
+                'responses': ['Punishment.', 'Reward.'],
+                'guidance': [
+                    'If they say Reward (some do) ask, "Would a policeman give me a bunch of flowers for speeding OR a penalty notice?" If they say Reward, ask them what country would give flowers for speeding…'
+                ],
+                'question_number': 8
+            },
+            {
+                'question': '9. Does that sound like a place in Heaven or Hell?',
+                'responses': ['Hell.', 'Heaven.'],
+                'guidance': [
+                    'If they say Heaven, ask them "Does heaven sound like punishment or would it be hell?" You could also ask them if a Judge would send a criminal to Disneyland or Prison'
+                ],
+                'question_number': 9
+            },
+            {
+                'question': '10. So how do you think you could avoid your Hell punishment?',
+                'responses': ['Not sure.', 'Do good things.', 'Ask for forgiveness/prayer.', 'Repent.'],
+                'guidance': [
+                    'If they answer do good things, "Imagine if you did 5 serious crimes today and then tomorrow you did no more crimes and instead did 10 good things, would the police ignore your crimes?"',
+                    'If they answer ask for forgiveness/prayer, "Imagine you break a serious law in society and standing before the judge you ask for forgiveness. Will the judge let you go free?" {wait for an answer}',
+                    'If they say Repent, ask them what they mean by repent. If they say: "Ask for forgiveness", refer to the analogy above.'
+                ],
+                'question_number': 10
+            },
+            {
+                'question': '11. What we need is someone else who would take the punishment for us. If someone took 100% of your Hell punishment, how much would be left for you to take?',
+                'responses': ['Nothing.', 'Some.', 'Zero.'],
+                'guidance': [
+                    'If they still struggle with saying nothing or zero, ask: "If someone chops off all of your fingers, do you have any left?" ..then repeat the question'
+                ],
+                'question_number': 11
+            },
+            {
+                'question': '12. So if you have no more Hell punishment, where will you go when you die?',
+                'responses': ['Heaven.', 'Hell.'],
+                'guidance': [
+                    'If they still say Hell, ask them again how our Hell punishment is paid for. (By having someone take it for us)',
+                    'If they are struggling to understand this concept, use the example of the speeding fine analogy.'
+                ],
+                'question_number': 12
+            },
+            {
+                'question': '13. That was Jesus, that\'s why he died on the cross, to take the punishment for our sins and he rose from the dead 3 days later.',
+                'responses': ['I understand.', 'That makes sense.'],
+                'guidance': [
+                    'Continue to the next question to confirm their understanding.'
+                ],
+                'question_number': 13
+            },
+            {
+                'question': '14. So if Jesus does that for you, where do you go when you die?',
+                'responses': ['Heaven.', 'Hell.'],
+                'guidance': [
+                    'If they still say Hell, repeat the question like this "If Jesus takes ALL of your hell punishment, then how much is left for you to get in hell?" ... none. Then repeat question 14 again.'
+                ],
+                'question_number': 14
+            },
+            {
+                'question': '15. So why would God let you into heaven?',
+                'responses': ['Because Jesus paid for my sins.', 'Because of my actions.'],
+                'guidance': [
+                    'If they still think because of their actions, go back to Question 10'
+                ],
+                'question_number': 15
+            },
+            {
+                'question': '16. Now he offers this to us as a free gift and all I have to do to receive this free gift is to simply trust that Jesus died on the cross paying for 100% of our Hell punishment.',
+                'responses': ['I understand.', 'That makes sense.'],
+                'guidance': [
+                    'Continue to the next question to test their understanding.'
+                ],
+                'question_number': 16
+            },
+            {
+                'question': '17. So if you trust that Jesus has paid for all of your sins now and tomorrow you sin 5 more times and then die, would you go to Heaven or Hell?',
+                'responses': ['Heaven.', 'Hell.'],
+                'guidance': [
+                    'If they say Hell, Ask them: "What was getting you into heaven again? ... Jesus. And does Jesus pay for just your past sins or also your future sins?" Future .. Then repeat the initial question.',
+                    'If they say past only, say: "If Jesus died for 100% of your sins, that would have to include your future sins right?"'
+                ],
+                'question_number': 17
+            },
+            {
+                'question': '18. and why heaven?',
+                'responses': ['Because Jesus paid for my sins.', 'Because of good works.'],
+                'guidance': [
+                    'If they again think because of good works or asking for forgiveness, go back to Q10.',
+                    'Good answer, you\'d still get to Heaven as Jesus has paid for your past, present, and future sins.'
+                ],
+                'question_number': 18
+            },
+            {
+                'question': '19. But if you don\'t trust Jesus paid for your sins, where would you end up?',
+                'responses': ['Hell.', 'Heaven.'],
+                'guidance': [
+                    'If they say heaven, say: "If I offered you a gift today, but you didn\'t accept it from me, have you actually received that gift?" No.',
+                    '"In the same way, Jesus is offering to pay for our sins as a gift but if we don\'t accept it, we won\'t receive it and so where would we end up?"'
+                ],
+                'question_number': 19
+            },
+            {
+                'question': '20. ..and since you don\'t want to go to Hell, WHEN should you start trusting that Jesus has paid for your sins?',
+                'responses': ['Now.', 'Before you die.'],
+                'guidance': [
+                    'If they say before you die, ask "Do you know when you will die? If not, when should you start trusting that Jesus paid for your sins?"'
+                ],
+                'question_number': 20
+            },
+            {
+                'question': '21. So if you stood before God right now and he asked you "Why should I let you into Heaven?" what would you say?',
+                'responses': ['"Because Jesus paid for my sins."', '"I don\'t know"', '"I accept or I believe…"', '"Both"'],
+                'guidance': [
+                    'If they say "I don\'t know" Ask, what was the reason you could go to heaven again? If they get that right, then return to re-ask Q21.',
+                    'If they answer anything beginning with "I accept or I believe…" Ask: "Now do we go to heaven because of what WE have done for God, or because of what HE has done for us? (He has done) Right, and so if our answer to God starts in the first person "I" we are about to point to what WE have done for God rather than what Jesus has done for us in dying for our sins. Make sense? So How would you re-answer the question.."',
+                    'If they say "Both" (Is it what He does or we do) Say: "If Jesus takes 100% of our hell punishment, we get to go to heaven. So are you going to heaven because of YOU or because of HIM?" (Him)'
+                ],
+                'question_number': 21
+            },
+            {
+                'question': '22. Now, imagine a friend of yours says they are going to heaven because they are a good person, where would they go when they die?',
+                'responses': ['Hell.', 'Heaven.'],
+                'guidance': [
+                    'If they say Heaven, ask them "what\'s the reason why God would let someone into heaven?" ... Jesus. "Yep, so then is your friend trusting in Jesus to get them to heaven, or their own actions?" ... their own actions. "Right, and because they are trusting in their own actions where would they end up?" ... hell.'
+                ],
+                'question_number': 22
+            },
+            {
+                'question': '23. But another friend comes to you and says "I\'m going to heaven because of two reasons. The first reason is because Jesus died for my sins and the second reason is because I\'ve been a good person." Would that person go to Heaven or Hell?',
+                'responses': ['Hell.', 'Heaven.'],
+                'guidance': [
+                    'If they say Heaven, Say: "By trusting in two things they aren\'t trusting 100% in Jesus to save them. It would be 50% Jesus and 50% their actions. So if Jesus only contributes 50%, where do they end up? Again, we have to trust that Jesus is the ONLY reason we are saved, not our actions."',
+                    'Exactly, because they are still trusting partly in themselves, and not ONLY in Jesus to save them. Makes sense?'
+                ],
+                'question_number': 23
+            },
+            {
+                'question': '24. So, on a scale of 0-100%, how sure are you that you will go to Heaven when you die?',
+                'responses': ['100%.', 'Less than 100%.'],
+                'guidance': [
+                    'If they say anything less, then ask "What was the reason you would go to heaven again? ... Jesus. Right, and how much of your punishment did Jesus take for you?" {wait for an answer} "So how much punishment is then left for you to still get in hell?" None …. "So if you trust in that, on a scale of 0-100%, how sure could you be that you will go to Heaven?"',
+                    'If they are still unsure, ask them what makes them less than 100% sure and deal with their answer. Reminding them that Jesus paid for past, present and future sins.'
+                ],
+                'question_number': 24
+            },
+            {
+                'question': '25. So, does doing good things play any part in getting you to heaven?',
+                'responses': ['No.', 'Yes.'],
+                'guidance': [
+                    'If they say yes, again, ask them if it is our good deeds/things that saves us or Jesus dying on the cross. Refer to good deeds analogy in Q10 if needed.'
+                ],
+                'question_number': 25
+            },
+            {
+                'question': '26. Do you need to ask for forgiveness to go to Heaven?',
+                'responses': ['No.', 'Yes.'],
+                'guidance': [
+                    'If they say yes, ask them if it is our asking for forgiveness that saves us or Jesus dying on the cross. Refer to good deeds analogy in Q10 if needed.'
+                ],
+                'question_number': 26
+            },
+            {
+                'question': '27. Do you need to be baptized to go to Heaven?',
+                'responses': ['No.', 'Yes.'],
+                'guidance': [
+                    'If they say yes, again, ask them if it is our baptism that saves us or Jesus dying on the cross.'
+                ],
+                'question_number': 27
+            },
+            {
+                'question': '28. So if these things don\'t get us to Heaven, why do we do good things?',
+                'responses': ['Because we are thankful.', 'I don\'t know.'],
+                'guidance': [
+                    'If they can\'t answer this, say "If you are in a burning building and a fireman risks his life to bring you out to safety, what would you want to do for that fireman who saved you?" {wait for an answer}',
+                    '"Yeah, and you definitely don\'t want to punch him in the face, right? Same with Jesus, if He has laid his life down to save you from hell, what would you want to do for Jesus?"'
+                ],
+                'question_number': 28
+            },
+            {
+                'question': '29. Do you know how you can find out more about Jesus?',
+                'responses': ['The Bible.', 'Church.', 'I don\'t know.'],
+                'guidance': [
+                    'Continue to the next question about Bible reading.'
+                ],
+                'question_number': 29
+            },
+            {
+                'question': '30. Yep! Do you have a bible and do you read it much?',
+                'responses': ['Yes.', 'No.'],
+                'guidance': [
+                    'If they say No, you can share a link with them to get one.'
+                ],
+                'question_number': 30
+            },
+            {
+                'question': '31. Think of it like this, If you ate food only once a week, would you be very strong?',
+                'responses': ['No.', 'Yes.'],
+                'guidance': [
+                    'Right. We eat food everyday to stay strong physically. Our bible is like our spiritual food.'
+                ],
+                'question_number': 31
+            },
+            {
+                'question': '32. So if the bible is our spiritual food, how often do you think you should read the bible then to be strong spiritually?',
+                'responses': ['Everyday.', 'Once a week.', 'Sometimes.'],
+                'guidance': [
+                    'Continue to the next question about church.'
+                ],
+                'question_number': 32
+            },
+            {
+                'question': '34. Do you go to church?... what kind of church is it?',
+                'responses': ['Yes.', 'No.'],
+                'guidance': [
+                    'If they answer no, then say "Church is where you\'ll be able to hear God\'s word being preached and where you\'ll meet other Christians who can help you in your faith. Does that sound good?"',
+                    'Here\'s a link you can use to find a great church in your area (send church link)'
+                ],
+                'question_number': 34
+            },
+            {
+                'question': '35. Do they teach the same message we\'ve spoken about here to be saved from our sins?',
+                'responses': ['Yes.', 'Not really.'],
+                'guidance': [
+                    'If they answer yes, then that\'s great. If they answer not really. Ask "So do you think it\'s a good idea to keep attending a church that teaches the wrong way to heaven?"',
+                    'Ask if they are able to get to another church on their own but if they can\'t, Suggest the following: Spend time in personal prayer and reading the Bible to strengthen your faith on your own.'
+                ],
+                'question_number': 35
+            },
+            {
+                'question': '36. Also, think of your family and friends, if you asked them, "What\'s the reason you\'ll go to heaven?" what would their answer be?',
+                'responses': ['I\'m not sure.', 'They\'ll go to heaven because of Jesus.', 'Doing good deeds gets them to heaven.'],
+                'guidance': [
+                    'If they answer with doing good deeds gets them to heaven then ask: "So where would they end up?"(Hell) Refer to good deeds analogy in Q10 if needed.'
+                ],
+                'question_number': 36
+            },
+            {
+                'question': '37. And since you don\'t want them to go to hell, how could you help them not to end up there?',
+                'responses': ['Tell them about the Gospel.', 'I don\'t know.'],
+                'guidance': [
+                    'Continue to the next question to confirm their understanding.'
+                ],
+                'question_number': 37
+            },
+            {
+                'question': '38. So let me ask you, What if God asked you this "Why should I not send you to hell for all the sins you\'ve done", how would you answer?',
+                'responses': ['"Because Jesus paid for my sins."', 'Other answer.'],
+                'guidance': [
+                    'Should be the same answer as for Q21. If it\'s not the same answer as Q21 you may need to refer to analogies again in Q10.'
+                ],
+                'question_number': 38
+            },
+            {
+                'question': '39. Now, remember at the beginning of this chat, what DID you think was getting you to heaven?',
+                'responses': ['Doing good/asking for forgiveness etc.', '"Because Jesus died for my sins"'],
+                'guidance': [
+                    'If they answer with "Because Jesus died for my sins", you may need to remind them at the start they weren\'t pointing to their actions (if they were) and ask them to remind you of why we get to heaven again.',
+                    'So, since you were trusting in yourself to get you to heaven, if you had died before this chat, where would you have ended up? Hell.',
+                    'But if you died right now, where will you end up? Heaven.'
+                ],
+                'question_number': 39
             }
         ]
 
@@ -523,6 +804,107 @@ class EvangelismScriptFollower:
                     'guidance': ['They say they never used bad language. Continue to question 6.'],
                     'confidence': 90
                 }
+        
+        # Question 6: "Have you ever been angry or disrespected someone?"
+        elif "angry or disrespected" in question_lower:
+            if any(word in spoken_lower for word in ['yes', 'yeah', 'yep', 'angry', 'disrespected', 'mad']):
+                return {
+                    'matched_response': 'Yes',
+                    'next_question': self.get_question_by_number(7),  # Go to Q7
+                    'guidance': ['They admit to being angry or disrespectful. What do you call someone who gets angry or disrespects others?'],
+                    'confidence': 90
+                }
+            elif any(word in spoken_lower for word in ['no', 'nope', 'nah', 'never', 'not']):
+                return {
+                    'matched_response': 'No',
+                    'next_question': self.get_question_by_number(7),  # Still go to Q7
+                    'guidance': ['They say they never been angry or disrespectful. Continue to question 7.'],
+                    'confidence': 90
+                }
+        
+        # Question 7: "We've all done these things and so if God was to judge you based on these things would you be innocent or guilty?"
+        elif "innocent or guilty" in question_lower:
+            if any(word in spoken_lower for word in ['guilty', 'guilt']):
+                return {
+                    'matched_response': 'Guilty',
+                    'next_question': self.get_question_by_number(8),  # Go to Q8
+                    'guidance': ['They admit they are guilty. Proceed to question 8.'],
+                    'confidence': 90
+                }
+            elif any(word in spoken_lower for word in ['innocent', 'not guilty']):
+                return {
+                    'matched_response': 'Innocent',
+                    'next_question': self.get_question_by_number(8),  # Still go to Q8
+                    'guidance': ['If they say innocent, give them the definition: Innocent means you\'ve never done anything wrong your whole life, and guilty means you\'ve done at least one bad thing - so which one would you be?'],
+                    'confidence': 90
+                }
+        
+        # Question 8: "So would we deserve a reward or punishment?"
+        elif "reward or punishment" in question_lower:
+            if any(word in spoken_lower for word in ['punishment', 'punish']):
+                return {
+                    'matched_response': 'Punishment',
+                    'next_question': self.get_question_by_number(9),  # Go to Q9
+                    'guidance': ['They understand they deserve punishment. Proceed to question 9.'],
+                    'confidence': 90
+                }
+            elif any(word in spoken_lower for word in ['reward', 'good things']):
+                return {
+                    'matched_response': 'Reward',
+                    'next_question': self.get_question_by_number(9),  # Still go to Q9
+                    'guidance': ['If they say Reward (some do) ask, "Would a policeman give me a bunch of flowers for speeding OR a penalty notice?" If they say Reward, ask them what country would give flowers for speeding…'],
+                    'confidence': 90
+                }
+        
+        # Question 9: "Does that sound like a place in Heaven or Hell?"
+        elif "heaven or hell" in question_lower:
+            if any(word in spoken_lower for word in ['hell', 'bad place']):
+                return {
+                    'matched_response': 'Hell',
+                    'next_question': self.get_question_by_number(10),  # Go to Q10
+                    'guidance': ['They understand it sounds like Hell. Proceed to question 10.'],
+                    'confidence': 90
+                }
+            elif any(word in spoken_lower for word in ['heaven', 'good place']):
+                return {
+                    'matched_response': 'Heaven',
+                    'next_question': self.get_question_by_number(10),  # Still go to Q10
+                    'guidance': ['If they say Heaven, ask them "Does heaven sound like punishment or would it be hell?" You could also ask them if a Judge would send a criminal to Disneyland or Prison'],
+                    'confidence': 90
+                }
+        
+        # Question 10: "So how do you think you could avoid your Hell punishment?"
+        elif "avoid your hell punishment" in question_lower:
+            if any(word in spoken_lower for word in ['not sure', 'dont know', "don't know", 'unsure']):
+                return {
+                    'matched_response': 'Not sure',
+                    'next_question': self.get_question_by_number(11),  # Go to Q11
+                    'guidance': ['They are not sure how to avoid Hell punishment. Proceed to question 11.'],
+                    'confidence': 90
+                }
+            elif any(word in spoken_lower for word in ['good things', 'good deeds', 'be good', 'do good']):
+                return {
+                    'matched_response': 'Do good things',
+                    'next_question': self.get_question_by_number(11),  # Go to Q11
+                    'guidance': ['If they answer do good things, "Imagine if you did 5 serious crimes today and then tomorrow you did no more crimes and instead did 10 good things, would the police ignore your crimes?"'],
+                    'confidence': 90
+                }
+            elif any(word in spoken_lower for word in ['forgiveness', 'prayer', 'ask for forgiveness', 'pray']):
+                return {
+                    'matched_response': 'Ask for forgiveness/prayer',
+                    'next_question': self.get_question_by_number(11),  # Go to Q11
+                    'guidance': ['If they answer ask for forgiveness/prayer, "Imagine you break a serious law in society and standing before the judge you ask for forgiveness. Will the judge let you go free?" {wait for an answer}'],
+                    'confidence': 90
+                }
+            elif any(word in spoken_lower for word in ['repent', 'repentance']):
+                return {
+                    'matched_response': 'Repent',
+                    'next_question': self.get_question_by_number(11),  # Go to Q11
+                    'guidance': ['If they say Repent, ask them what they mean by repent. If they say: "Ask for forgiveness", refer to the analogy above.'],
+                    'confidence': 90
+                }
+        
+        # Continue with more questions... (I'll add the rest in the next update)
         
         # Default fallback
         return None
