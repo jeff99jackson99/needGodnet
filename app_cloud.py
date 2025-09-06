@@ -19,8 +19,8 @@ import PyPDF2
 import logging
 import streamlit.components.v1 as components
 
-# Import the optimized version
-from app_optimized import OptimizedScriptFollower, create_speech_recognition_component
+# Import the smart version
+from app_smart import SmartScriptFollower, create_smart_speech_component
 
 # Configure logging
 def setup_logging():
@@ -386,17 +386,17 @@ def create_speech_recognition_component():
 
 def main():
     st.set_page_config(
-        page_title="Need God Script Follower",
+        page_title="Smart Script Follower",
         page_icon="🎭",
         layout="wide"
     )
     
-    st.title("🎭 Need God Script Follower")
-    st.markdown("**Real-time conversation listener that instantly guides you to the right script point**")
+    st.title("🎭 Smart Script Follower")
+    st.markdown("**Ultra-intelligent conversation listener that instantly guides you to the right script point**")
     
-    # Initialize session state with optimized follower
+    # Initialize session state with smart follower
     if 'script_follower' not in st.session_state:
-        st.session_state.script_follower = OptimizedScriptFollower()
+        st.session_state.script_follower = SmartScriptFollower()
     
     if 'is_listening' not in st.session_state:
         st.session_state.is_listening = False
@@ -416,16 +416,17 @@ def main():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        st.header("🎤 Live Conversation Listener")
+        st.header("🎤 Smart Conversation Listener")
         
         # Speech Recognition Component
         st.subheader("Voice Input")
-        audio_text = components.html(create_speech_recognition_component(), height=250)
+        audio_text = components.html(create_smart_speech_component(), height=300)
         
         # Process audio text if received
         if audio_text:
-            st.session_state.script_follower.process_audio_text(audio_text)
-            st.write(f"**You said:** {audio_text}")
+            response = st.session_state.script_follower.process_audio_text(audio_text)
+            if response:
+                st.session_state.latest_response = response
         
         # Display recent phrases
         if st.session_state.script_follower.phrase_buffer:
@@ -434,33 +435,45 @@ def main():
                 st.text(f"{i+1}. {phrase}")
     
     with col2:
-        st.header("📝 Instant Script Guidance")
+        st.header("📝 Smart Response Output")
         
-        # Display matches in real-time
-        if st.session_state.script_follower.script_data:
-            # Process results queue
-            while not st.session_state.script_follower.results_queue.empty():
-                try:
-                    result = st.session_state.script_follower.results_queue.get_nowait()
-                    
-                    st.success(f"🎯 **FOUND MATCH!** (Confidence: {result['confidence']}%)")
-                    st.write(f"**You said:** {result['spoken']}")
-                    st.write(f"**Script line #{result['line_number']}:** {result['matched_line']}")
-                    st.write(f"**Response:** {result['response']}")
-                    st.write(f"**Speaker:** {result['speaker']}")
-                    st.write("---")
-                    
-                except queue.Empty:
-                    break
+        # Display the latest response prominently
+        if 'latest_response' in st.session_state and st.session_state.latest_response:
+            response = st.session_state.latest_response
             
-            # Auto-refresh for real-time updates
-            time.sleep(0.05)  # Faster refresh
-            st.rerun()
-        else:
-            st.info("Script not loaded")
+            # Create a prominent response display
+            st.markdown("### 🎯 **FOUND MATCH!**")
+            
+            # Response box with styling
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+                border: 3px solid #28a745;
+                border-radius: 15px;
+                padding: 20px;
+                margin: 10px 0;
+                box-shadow: 0 8px 16px rgba(40,167,69,0.2);
+            ">
+                <h4 style="color: #155724; margin-top: 0;">📊 Confidence: {response['confidence']}%</h4>
+                <p style="font-size: 16px; margin: 10px 0;"><strong>You said:</strong> {response['spoken']}</p>
+                <p style="font-size: 16px; margin: 10px 0;"><strong>Script line #{response['line_number']}:</strong> {response['matched_line']}</p>
+                <p style="font-size: 16px; margin: 10px 0;"><strong>Response:</strong> {response['response']}</p>
+                <p style="font-size: 16px; margin: 10px 0;"><strong>Speaker:</strong> {response['speaker']}</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Display response history
+        if st.session_state.script_follower.response_history:
+            st.subheader("📚 Response History")
+            for i, response in enumerate(reversed(list(st.session_state.script_follower.response_history))):
+                with st.expander(f"Response {len(st.session_state.script_follower.response_history) - i}: {response['spoken'][:50]}..."):
+                    st.write(f"**Confidence:** {response['confidence']}%")
+                    st.write(f"**Script line #{response['line_number']}:** {response['matched_line']}")
+                    st.write(f"**Response:** {response['response']}")
+                    st.write(f"**Speaker:** {response['speaker']}")
     
-    # Script statistics and settings
-    with st.expander("⚙️ Settings & Statistics"):
+    # Settings and statistics
+    with st.expander("⚙️ Smart Settings & Statistics"):
         col1, col2 = st.columns(2)
         
         with col1:
@@ -472,11 +485,18 @@ def main():
         
         with col2:
             st.subheader("Performance Settings")
-            confidence = st.slider("Confidence Threshold", 50, 95, st.session_state.script_follower.confidence_threshold)
+            confidence = st.slider("Confidence Threshold", 30, 95, st.session_state.script_follower.confidence_threshold)
             st.session_state.script_follower.confidence_threshold = confidence
             
-            response_delay = st.slider("Response Delay (ms)", 10, 200, int(st.session_state.script_follower.response_delay * 1000))
+            response_delay = st.slider("Response Delay (ms)", 5, 100, int(st.session_state.script_follower.response_delay * 1000))
             st.session_state.script_follower.response_delay = response_delay / 1000
+            
+            # Clear response history button
+            if st.button("🗑️ Clear Response History"):
+                st.session_state.script_follower.response_history.clear()
+                if 'latest_response' in st.session_state:
+                    del st.session_state.latest_response
+                st.rerun()
 
 if __name__ == "__main__":
     main()
