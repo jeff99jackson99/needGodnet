@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "script-follower"
+version = "1.0.0"
+description = "Real-time speech recognition script follower"
+authors = [{name = "Jeff Jackson", email = "jeff@example.com"}]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "streamlit>=1.28.1",
+    "speechrecognition>=3.10.0",
+    "pyaudio>=0.2.11",
+    "pydub>=0.25.1",
+    "fuzzywuzzy>=0.18.0",
+    "python-levenshtein>=0.21.1",
+    "numpy>=1.24.3",
+    "pandas>=2.0.3",
+    "PyPDF2>=3.0.1",
+    "python-dotenv>=1.0.0",
+    "watchdog>=3.0.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0"
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
