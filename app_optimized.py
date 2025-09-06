@@ -65,14 +65,7 @@ class OptimizedScriptFollower:
     def load_script_automatically(self):
         """Load the needgodscript.pdf automatically"""
         try:
-            # Try to load from GitHub first
-            script_content = self.load_script_from_github()
-            if script_content:
-                self.script_data = self.parse_script_text(script_content)
-                logger.info(f"Script loaded from GitHub with {len(self.script_data)} lines")
-                return
-            
-            # If GitHub fails, try to load from local file
+            # Try to load from local file first (for Streamlit Cloud)
             script_file = "needgodscript.pdf"
             if os.path.exists(script_file):
                 with open(script_file, 'rb') as file:
@@ -83,13 +76,43 @@ class OptimizedScriptFollower:
                     
                     self.script_data = self.parse_script_text(text)
                     logger.info(f"Script loaded from local file with {len(self.script_data)} lines")
-            else:
-                logger.warning("Script file not found, using empty script")
-                self.script_data = {}
+                    return
+            
+            # If local file fails, try to load from GitHub
+            script_content = self.load_script_from_github()
+            if script_content:
+                self.script_data = self.parse_script_text(script_content)
+                logger.info(f"Script loaded from GitHub with {len(self.script_data)} lines")
+                return
+            
+            # If both fail, create a sample script for testing
+            logger.warning("Script file not found, creating sample script")
+            self.script_data = self.create_sample_script()
                 
         except Exception as e:
             logger.error(f"Error loading script automatically: {e}")
-            self.script_data = {}
+            self.script_data = self.create_sample_script()
+    
+    def create_sample_script(self):
+        """Create a sample script for testing if the main script isn't available"""
+        return {
+            "Hello, how are you today?": {
+                'speaker': 'PERSON',
+                'response': 'Hello, how are you today?',
+                'keywords': ['hello', 'how', 'are', 'you', 'today'],
+                'line_number': 1,
+                'timestamp': datetime.now().isoformat(),
+                'search_terms': ['hello', 'how are you', 'how are you today', 'hello how', 'are you today']
+            },
+            "I'm doing well, thank you for asking.": {
+                'speaker': 'RESPONSE',
+                'response': "I'm doing well, thank you for asking.",
+                'keywords': ['doing', 'well', 'thank', 'asking'],
+                'line_number': 2,
+                'timestamp': datetime.now().isoformat(),
+                'search_terms': ['doing well', 'thank you', 'thank you asking', 'doing', 'well', 'thank', 'asking']
+            }
+        }
     
     def load_script_from_github(self):
         """Load script from GitHub repository"""

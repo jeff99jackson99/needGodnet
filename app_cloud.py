@@ -403,7 +403,11 @@ def main():
     
     # Display script status
     if st.session_state.script_follower.script_data:
-        st.success(f"✅ **Script Loaded:** {len(st.session_state.script_follower.script_data)} lines ready for instant matching")
+        if len(st.session_state.script_follower.script_data) > 10:  # Real script loaded
+            st.success(f"✅ **Script Loaded:** {len(st.session_state.script_follower.script_data)} lines ready for instant matching")
+        else:  # Sample script loaded
+            st.warning(f"⚠️ **Sample Script Loaded:** {len(st.session_state.script_follower.script_data)} lines (needgodscript.pdf not found)")
+            st.info("The app is using a sample script for testing. Your actual script will be loaded when the PDF file is available.")
     else:
         st.error("❌ Script not loaded. Please check the needgodscript.pdf file.")
         return
