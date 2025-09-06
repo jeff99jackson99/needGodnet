@@ -518,7 +518,7 @@ def main():
 
         with col2:
             st.subheader("Performance Settings")
-            confidence = st.slider("Confidence Threshold", 30, 95, st.session_state.script_follower.confidence_threshold)
+            confidence = st.slider("Confidence Threshold", 20, 95, st.session_state.script_follower.confidence_threshold)
             st.session_state.script_follower.confidence_threshold = confidence
 
             # Reset position button

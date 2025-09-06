@@ -47,7 +47,7 @@ class EvangelismScriptFollower:
         self.current_phrase = ""
         self.phrase_buffer = deque(maxlen=10)
         self.response_history = deque(maxlen=20)
-        self.confidence_threshold = 60
+        self.confidence_threshold = 25  # Lowered for better matching
         self.response_delay = 0.02
 
         # Load the evangelism script
@@ -257,10 +257,15 @@ class EvangelismScriptFollower:
                 
                 # Also check for common variations
                 if (ratio > self.confidence_threshold or
-                    (spoken_lower in ['i don\'t know', 'i don\'t know.', 'dunno'] and 
+                    (spoken_lower in ['i don\'t know', 'i don\'t know.', 'dunno', 'i dunno'] and 
                      response_lower in ['not sure', 'not sure.']) or
                     (spoken_lower in ['not sure', 'not sure.'] and 
-                     response_lower in ['i don\'t know', 'i don\'t know.'])):
+                     response_lower in ['i don\'t know', 'i don\'t know.']) or
+                    # Additional common variations
+                    (spoken_lower in ['i don\'t know', 'i don\'t know.', 'dunno', 'i dunno'] and 
+                     'not sure' in response_lower) or
+                    ('not sure' in spoken_lower and 
+                     response_lower in ['i don\'t know', 'i don\'t know.', 'dunno'])):
                     
                     # Move to next question after getting a response
                     self.current_position = min(self.current_position + 1, len(self.conversation_flow) - 1)
