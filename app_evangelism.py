@@ -386,7 +386,7 @@ class EvangelismScriptFollower:
                 return {
                     'matched_response': 'Not sure',
                     'next_question': self.get_question_by_number(2),  # Go to Q2
-                    'guidance': ['They are not sure. Go straight to the next question.'],
+                    'guidance': ['They are not sure. Go straight to the next question (Q2).'],
                     'confidence': 85
                 }
         

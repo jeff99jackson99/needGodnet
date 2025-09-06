@@ -520,18 +520,19 @@ def main():
     st.header("✍️ Type Their Response")
     text_input = st.text_input("What did they say?", key="response_input", placeholder="Type their answer here...")
     
-    # Show suggested answers based on current question
+    # Show suggested answers based on current question (compact)
     current_pos = st.session_state.script_follower.current_position
     if current_pos < len(st.session_state.script_follower.conversation_flow):
         current_question = st.session_state.script_follower.conversation_flow[current_pos]['question']
         suggested_answers = get_suggested_answers(current_question)
         
         if suggested_answers:
-            st.write("**💡 Suggested answers (click to use):**")
-            cols = st.columns(min(len(suggested_answers), 3))
-            for i, answer in enumerate(suggested_answers):
-                with cols[i % 3]:
-                    if st.button(f"📝 {answer}", key=f"suggest_{i}", use_container_width=True):
+            st.write("**💡 Quick answers:**")
+            # Show only 3 most common answers in a single row
+            cols = st.columns(3)
+            for i, answer in enumerate(suggested_answers[:3]):
+                with cols[i]:
+                    if st.button(f"{answer}", key=f"suggest_{i}", use_container_width=True):
                         response = st.session_state.script_follower.process_audio_text(answer)
                         if response:
                             st.session_state.latest_response = response
@@ -542,35 +543,17 @@ def main():
     with col_btn1:
         if st.button("Process Response", type="primary", use_container_width=True):
             if text_input and text_input.strip():
-                # Debug: Show current position and available responses
-                current_pos = st.session_state.script_follower.current_position
-                if current_pos < len(st.session_state.script_follower.conversation_flow):
-                    current_item = st.session_state.script_follower.conversation_flow[current_pos]
-                    st.write(f"**DEBUG:** Current position: {current_pos + 1}")
-                    st.write(f"**DEBUG:** Available responses: {current_item['responses']}")
-                
                 response = st.session_state.script_follower.process_audio_text(text_input.strip())
                 if response:
                     st.session_state.latest_response = response
                     st.rerun()
-                else:
-                    st.write("**DEBUG:** No response match found")
     
     with col_btn2:
         if st.button("Test: 'we go to heaven'", use_container_width=True):
-            # Debug: Show current position and available responses
-            current_pos = st.session_state.script_follower.current_position
-            if current_pos < len(st.session_state.script_follower.conversation_flow):
-                current_item = st.session_state.script_follower.conversation_flow[current_pos]
-                st.write(f"**DEBUG:** Current position: {current_pos + 1}")
-                st.write(f"**DEBUG:** Available responses: {current_item['responses']}")
-            
             response = st.session_state.script_follower.process_audio_text("we go to heaven")
             if response:
                 st.session_state.latest_response = response
                 st.rerun()
-            else:
-                st.write("**DEBUG:** No response match found")
     
     # Show guidance if available
     if 'latest_response' in st.session_state and st.session_state.latest_response:
@@ -580,54 +563,38 @@ def main():
             st.markdown(f"""
             <div style="
                 background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-                border: 3px solid #28a745;
-                border-radius: 15px;
-                padding: 20px;
-                margin: 10px 0;
-                box-shadow: 0 8px 16px rgba(40,167,69,0.2);
+                border: 2px solid #28a745;
+                border-radius: 10px;
+                padding: 15px;
+                margin: 5px 0;
+                box-shadow: 0 4px 8px rgba(40,167,69,0.2);
             ">
-                <p style="font-size: 16px; margin: 10px 0;"><strong>They said:</strong> "{response['matched_response']}"</p>
-                <p style="font-size: 16px; margin: 10px 0;"><strong>Script guidance:</strong> {' '.join(response['guidance'][:2]) if response['guidance'] else 'No specific guidance'}</p>
-                <p style="font-size: 18px; margin: 15px 0; font-weight: bold; color: #155724;"><strong>Next question:</strong> {response['next_question'] if response['next_question'] and response['next_question'] != 'End of script reached' else 'End of script'}</p>
+                <p style="font-size: 14px; margin: 5px 0;"><strong>They said:</strong> "{response['matched_response']}"</p>
+                <p style="font-size: 14px; margin: 5px 0;"><strong>Guidance:</strong> {' '.join(response['guidance'][:1]) if response['guidance'] else 'No specific guidance'}</p>
+                <p style="font-size: 16px; margin: 10px 0; font-weight: bold; color: #155724;"><strong>Next:</strong> {response['next_question'] if response['next_question'] and response['next_question'] != 'End of script reached' else 'End of script'}</p>
             </div>
             """, unsafe_allow_html=True)
     
-    # Conversation History
+    # Conversation History (compact)
     if st.session_state.script_follower.response_history:
-        st.header("📚 Conversation History")
-        for i, response in enumerate(reversed(list(st.session_state.script_follower.response_history))):
-            with st.expander(f"Q{response['question_number']}: {response['matched_response']}"):
-                st.write(f"**Question:** {response['question']}")
-                st.write(f"**They said:** {response['matched_response']}")
-                st.write(f"**Next:** {response['next_question'] if response['next_question'] and response['next_question'] != 'End of script reached' else 'End of script'}")
+        st.markdown("**📚 History:**")
+        history_text = " | ".join([f"Q{resp['question_number']}: {resp['matched_response']}" for resp in list(st.session_state.script_follower.response_history)[-3:]])
+        st.write(history_text)
     
-    # Settings and statistics
-    with st.expander("⚙️ Settings & Statistics"):
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.subheader("Script Statistics")
-            st.write(f"**Total conversation points:** {len(st.session_state.script_follower.conversation_flow)}")
-            st.write(f"**Current position:** {st.session_state.script_follower.current_position + 1}")
-            st.write(f"**Progress:** {((st.session_state.script_follower.current_position + 1) / len(st.session_state.script_follower.conversation_flow) * 100):.1f}%")
-            
-
-        with col2:
-            st.subheader("Performance Settings")
-            confidence = st.slider("Confidence Threshold", 20, 95, st.session_state.script_follower.confidence_threshold)
-            st.session_state.script_follower.confidence_threshold = confidence
-
-            # Reset position button
-            if st.button("🔄 Reset to Beginning"):
-                st.session_state.script_follower.current_position = 0
-                st.rerun()
-
-            # Clear response history button
-            if st.button("🗑️ Clear History"):
-                st.session_state.script_follower.response_history.clear()
-                if 'latest_response' in st.session_state:
-                    del st.session_state.latest_response
-                st.rerun()
+    # Settings (compact)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("🔄 Reset", use_container_width=True):
+            st.session_state.script_follower.current_position = 0
+            st.rerun()
+    with col2:
+        if st.button("🗑️ Clear", use_container_width=True):
+            st.session_state.script_follower.response_history.clear()
+            if 'latest_response' in st.session_state:
+                del st.session_state.latest_response
+            st.rerun()
+    with col3:
+        st.write(f"**Progress:** {st.session_state.script_follower.current_position + 1}/{len(st.session_state.script_follower.conversation_flow)}")
 
 if __name__ == "__main__":
     main()
