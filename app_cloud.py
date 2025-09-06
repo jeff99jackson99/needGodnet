@@ -443,6 +443,12 @@ def main():
         if 'latest_response' in st.session_state and st.session_state.latest_response:
             response = st.session_state.latest_response
             
+            # Debug: Show what we're trying to display
+            st.write("**DEBUG - Response data:**")
+            st.write(f"Type: {response.get('type', 'unknown')}")
+            st.write(f"Guidance: {response.get('guidance', [])}")
+            st.write(f"Next question: {response.get('next_question', 'none')}")
+            
             # Create a prominent response display
             if response['type'] == 'question_asked':
                 st.markdown("### 🎤 **QUESTION ASKED!**")
@@ -479,6 +485,13 @@ def main():
                     <p style="font-size: 18px; margin: 15px 0; font-weight: bold; color: #155724;">WHAT TO SAY NEXT: {response['next_question'] if response['next_question'] and response['next_question'] != 'End of script reached' else 'End of script'}</p>
                 </div>
                 """, unsafe_allow_html=True)
+                
+                # Fallback simple display
+                st.write("---")
+                st.write("**SIMPLE FORMAT:**")
+                st.write(f"**WHAT THEY SAID:** {response['matched_response']}")
+                st.write(f"**SCRIPT SAYS:** {' '.join(response['guidance'][:2]) if response['guidance'] else 'No guidance'}")
+                st.write(f"**WHAT TO SAY NEXT:** {response['next_question'] if response['next_question'] and response['next_question'] != 'End of script reached' else 'End of script'}")
         
         # Display response history
         if st.session_state.script_follower.response_history:
