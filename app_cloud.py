@@ -19,8 +19,8 @@ import PyPDF2
 import logging
 import streamlit.components.v1 as components
 
-# Import the smart version
-from app_smart import SmartScriptFollower, create_smart_speech_component
+# Import the evangelism version
+from app_evangelism import EvangelismScriptFollower, create_evangelism_speech_component
 
 # Configure logging
 def setup_logging():
@@ -391,24 +391,25 @@ def main():
         layout="wide"
     )
     
-    st.title("🎭 Smart Script Follower")
-    st.markdown("**Ultra-intelligent conversation listener that instantly guides you to the right script point**")
+    st.title("✝️ Evangelism Script Follower")
+    st.markdown("**Intelligent conversation guide that follows your evangelism script in real-time**")
     
-    # Initialize session state with smart follower
+    # Initialize session state with evangelism follower
     if 'script_follower' not in st.session_state:
-        st.session_state.script_follower = SmartScriptFollower()
+        st.session_state.script_follower = EvangelismScriptFollower()
     
     if 'is_listening' not in st.session_state:
         st.session_state.is_listening = False
     
     # Display script status
-    if st.session_state.script_follower.script_data:
-        if len(st.session_state.script_follower.script_data) > 10:  # Real script loaded
-            st.success(f"✅ **Script Loaded:** {len(st.session_state.script_follower.script_data)} lines ready for instant matching")
-        else:  # Sample script loaded
-            st.warning(f"⚠️ **Sample Script Loaded:** {len(st.session_state.script_follower.script_data)} lines (needgodscript.pdf not found)")
-            st.info("The app is using a sample script for testing. Your actual script will be loaded when the PDF file is available.")
-            st.info("**Test phrases you can say:** 'Hello, how are you today?', 'I'm doing well, thank you for asking.', 'What brings you here today?', 'I'm looking for some guidance.', 'How can I help you?'")
+    if st.session_state.script_follower.conversation_flow:
+        st.success(f"✅ **Script Loaded:** {len(st.session_state.script_follower.conversation_flow)} conversation points ready")
+        
+        # Show current position
+        current_pos = st.session_state.script_follower.current_position
+        if current_pos < len(st.session_state.script_follower.conversation_flow):
+            current_question = st.session_state.script_follower.conversation_flow[current_pos]['question']
+            st.info(f"📍 **Current Position:** {current_question}")
     else:
         st.error("❌ Script not loaded. Please check the needgodscript.pdf file.")
         return
@@ -417,11 +418,11 @@ def main():
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        st.header("🎤 Smart Conversation Listener")
+        st.header("🎤 Conversation Listener")
         
         # Speech Recognition Component
         st.subheader("Voice Input")
-        audio_text = components.html(create_smart_speech_component(), height=300)
+        audio_text = components.html(create_evangelism_speech_component(), height=300)
         
         # Process audio text if received
         if audio_text and str(audio_text).strip():
@@ -436,15 +437,15 @@ def main():
                 st.text(f"{i+1}. {phrase}")
     
     with col2:
-        st.header("📝 Smart Response Output")
+        st.header("📝 Script Guidance")
         
         # Display the latest response prominently
         if 'latest_response' in st.session_state and st.session_state.latest_response:
             response = st.session_state.latest_response
             
             # Create a prominent response display
-            st.markdown("### 🎯 **FOUND MATCH!**")
-            
+            st.markdown("### 🎯 **SCRIPT MATCH FOUND!**")
+
             # Response box with styling
             st.markdown(f"""
             <div style="
@@ -456,44 +457,43 @@ def main():
                 box-shadow: 0 8px 16px rgba(40,167,69,0.2);
             ">
                 <h4 style="color: #155724; margin-top: 0;">📊 Confidence: {response['confidence']}%</h4>
-                <p style="font-size: 16px; margin: 10px 0;"><strong>You said:</strong> {response['spoken']}</p>
-                <p style="font-size: 16px; margin: 10px 0;"><strong>Script line #{response['line_number']}:</strong> {response['matched_line']}</p>
-                <p style="font-size: 16px; margin: 10px 0;"><strong>Response:</strong> {response['response']}</p>
-                <p style="font-size: 16px; margin: 10px 0;"><strong>Speaker:</strong> {response['speaker']}</p>
+                <p style="font-size: 16px; margin: 10px 0;"><strong>You heard:</strong> {response['matched_response']}</p>
+                <p style="font-size: 16px; margin: 10px 0;"><strong>Question #{response['question_number']}:</strong> {response['question']}</p>
+                <p style="font-size: 16px; margin: 10px 0;"><strong>Guidance:</strong> {response['guidance'][0] if response['guidance'] else 'No specific guidance'}</p>
             </div>
             """, unsafe_allow_html=True)
         
         # Display response history
         if st.session_state.script_follower.response_history:
-            st.subheader("📚 Response History")
+            st.subheader("📚 Conversation History")
             for i, response in enumerate(reversed(list(st.session_state.script_follower.response_history))):
-                with st.expander(f"Response {len(st.session_state.script_follower.response_history) - i}: {response['spoken'][:50]}..."):
+                with st.expander(f"Response {len(st.session_state.script_follower.response_history) - i}: {response['matched_response'][:50]}..."):
                     st.write(f"**Confidence:** {response['confidence']}%")
-                    st.write(f"**Script line #{response['line_number']}:** {response['matched_line']}")
-                    st.write(f"**Response:** {response['response']}")
-                    st.write(f"**Speaker:** {response['speaker']}")
+                    st.write(f"**Question #{response['question_number']}:** {response['question']}")
+                    st.write(f"**Guidance:** {response['guidance'][0] if response['guidance'] else 'No specific guidance'}")
     
     # Settings and statistics
-    with st.expander("⚙️ Smart Settings & Statistics"):
+    with st.expander("⚙️ Settings & Statistics"):
         col1, col2 = st.columns(2)
-        
+
         with col1:
             st.subheader("Script Statistics")
-            st.write(f"**Total lines:** {len(st.session_state.script_follower.script_data)}")
-            speakers = set(data['speaker'] for data in st.session_state.script_follower.script_data.values())
-            st.write(f"**Speakers:** {len(speakers)}")
-            st.write(f"**Speaker list:** {', '.join(speakers)}")
-        
+            st.write(f"**Total conversation points:** {len(st.session_state.script_follower.conversation_flow)}")
+            st.write(f"**Current position:** {st.session_state.script_follower.current_position + 1}")
+            st.write(f"**Progress:** {((st.session_state.script_follower.current_position + 1) / len(st.session_state.script_follower.conversation_flow) * 100):.1f}%")
+
         with col2:
             st.subheader("Performance Settings")
             confidence = st.slider("Confidence Threshold", 30, 95, st.session_state.script_follower.confidence_threshold)
             st.session_state.script_follower.confidence_threshold = confidence
-            
-            response_delay = st.slider("Response Delay (ms)", 5, 100, int(st.session_state.script_follower.response_delay * 1000))
-            st.session_state.script_follower.response_delay = response_delay / 1000
-            
+
+            # Reset position button
+            if st.button("🔄 Reset to Beginning"):
+                st.session_state.script_follower.current_position = 0
+                st.rerun()
+
             # Clear response history button
-            if st.button("🗑️ Clear Response History"):
+            if st.button("🗑️ Clear History"):
                 st.session_state.script_follower.response_history.clear()
                 if 'latest_response' in st.session_state:
                     del st.session_state.latest_response
