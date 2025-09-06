@@ -420,10 +420,36 @@ def main():
     with col1:
         st.header("🎤 Conversation Listener")
         
-        # Speech Recognition Component
-        st.subheader("Voice Input")
-        audio_text = components.html(create_evangelism_speech_component(), height=300)
+        # Input Options
+        st.subheader("Input Options")
         
+        # Text input option
+        st.write("**Type their response:**")
+        text_input = st.text_input("Enter their response:", key="response_input", placeholder="Type what they said (e.g., 'I don't know', 'Not sure', 'Yes', 'No')")
+        
+        col_btn1, col_btn2 = st.columns(2)
+        
+        with col_btn1:
+            if st.button("Process Response", type="primary"):
+                if text_input and text_input.strip():
+                    response = st.session_state.script_follower.process_audio_text(text_input.strip())
+                    if response:
+                        st.session_state.latest_response = response
+                        st.rerun()
+        
+        with col_btn2:
+            if st.button("Test: 'I don't know'"):
+                response = st.session_state.script_follower.process_audio_text("I don't know")
+                if response:
+                    st.session_state.latest_response = response
+                    st.rerun()
+        
+        st.write("---")
+        
+        # Speech Recognition Component
+        st.subheader("Voice Input (Alternative)")
+        audio_text = components.html(create_evangelism_speech_component(), height=300)
+
         # Process audio text if received
         if audio_text and str(audio_text).strip():
             response = st.session_state.script_follower.process_audio_text(audio_text)
