@@ -462,7 +462,7 @@ def main():
                 </div>
                 """, unsafe_allow_html=True)
             else:
-                st.markdown("### 🎯 **RESPONSE MATCHED!**")
+                st.markdown("### 🎯 **SCRIPT GUIDANCE!**")
                 # Response box with styling
                 st.markdown(f"""
                 <div style="
@@ -474,10 +474,9 @@ def main():
                     box-shadow: 0 8px 16px rgba(40,167,69,0.2);
                 ">
                     <h4 style="color: #155724; margin-top: 0;">📊 Confidence: {response['confidence']}%</h4>
-                    <p style="font-size: 16px; margin: 10px 0;"><strong>You heard:</strong> {response['matched_response']}</p>
-                    <p style="font-size: 16px; margin: 10px 0;"><strong>Question #{response['question_number']}:</strong> {response['question']}</p>
-                    <p style="font-size: 16px; margin: 10px 0;"><strong>Guidance:</strong> {' '.join(response['guidance'][:3]) if response['guidance'] else 'No specific guidance'}</p>
-                <p style="font-size: 16px; margin: 10px 0;"><strong>Next Question:</strong> {response['next_question'] if response['next_question'] and response['next_question'] != 'End of script reached' else 'End of script'}</p>
+                    <p style="font-size: 18px; margin: 15px 0; font-weight: bold; color: #155724;">WHAT THEY SAID: "{response['matched_response']}"</p>
+                    <p style="font-size: 16px; margin: 10px 0;"><strong>Script says:</strong> {' '.join(response['guidance'][:2]) if response['guidance'] else 'No specific guidance'}</p>
+                    <p style="font-size: 18px; margin: 15px 0; font-weight: bold; color: #155724;">WHAT TO SAY NEXT: {response['next_question'] if response['next_question'] and response['next_question'] != 'End of script reached' else 'End of script'}</p>
                 </div>
                 """, unsafe_allow_html=True)
         
@@ -501,22 +500,6 @@ def main():
             st.write(f"**Current position:** {st.session_state.script_follower.current_position + 1}")
             st.write(f"**Progress:** {((st.session_state.script_follower.current_position + 1) / len(st.session_state.script_follower.conversation_flow) * 100):.1f}%")
             
-            # Debug: Show first question structure
-            if st.session_state.script_follower.conversation_flow:
-                first_q = st.session_state.script_follower.conversation_flow[0]
-                st.write("**Debug - First Question:**")
-                st.write(f"Question: {first_q['question']}")
-                st.write(f"Responses: {first_q['responses']}")
-                st.write(f"Guidance: {first_q['guidance'][:2] if first_q['guidance'] else 'None'}")
-                
-                # Test matching
-                test_phrase = "i don't know"
-                st.write(f"**Test Matching:**")
-                st.write(f"Testing phrase: '{test_phrase}'")
-                for response in first_q['responses']:
-                    from fuzzywuzzy import fuzz
-                    ratio = fuzz.ratio(test_phrase, response.lower())
-                    st.write(f"Match with '{response}': {ratio}%")
 
         with col2:
             st.subheader("Performance Settings")
