@@ -272,18 +272,24 @@ class EvangelismScriptFollower:
                     # Get the next question for guidance
                     next_q = self.get_next_question()
                     
-                    # Enhance guidance with next question and specific response
+                    # Enhance guidance with specific next question based on script guidance
                     enhanced_guidance = current_item['guidance'].copy()
-                    if next_q and next_q != "End of script reached":
+                    
+                    # Parse the guidance to find specific next question instructions
+                    next_question = self.parse_next_question_from_guidance(current_item['guidance'], response)
+                    
+                    if next_question:
+                        enhanced_guidance.append(f"NEXT QUESTION TO ASK: {next_question}")
+                    elif next_q and next_q != "End of script reached":
                         enhanced_guidance.append(f"NEXT QUESTION TO ASK: {next_q}")
                         
-                        # Add specific response guidance based on the matched response
-                        if response.lower() in ['not sure', 'not sure.']:
-                            enhanced_guidance.append("RESPONSE: Simply say the next question without additional commentary.")
-                        elif response.lower() in ['yes', 'yes.']:
-                            enhanced_guidance.append("RESPONSE: Acknowledge their answer and proceed to the next question.")
-                        elif response.lower() in ['no', 'no.']:
-                            enhanced_guidance.append("RESPONSE: Thank them for their honesty and explain the situation.")
+                    # Add specific response guidance based on the matched response
+                    if response.lower() in ['not sure', 'not sure.']:
+                        enhanced_guidance.append("RESPONSE: Simply say the next question without additional commentary.")
+                    elif response.lower() in ['yes', 'yes.']:
+                        enhanced_guidance.append("RESPONSE: Acknowledge their answer and proceed to the next question.")
+                    elif response.lower() in ['no', 'no.']:
+                        enhanced_guidance.append("RESPONSE: Thank them for their honesty and explain the situation.")
                     
                     return {
                         'type': 'response_match',
@@ -302,6 +308,47 @@ class EvangelismScriptFollower:
         if self.current_position + 1 < len(self.conversation_flow):
             return self.conversation_flow[self.current_position + 1]['question']
         return "End of script reached"
+
+    def parse_next_question_from_guidance(self, guidance, response):
+        """Parse the guidance to find specific next question instructions"""
+        if not guidance:
+            return None
+        
+        guidance_text = ' '.join(guidance).lower()
+        response_lower = response.lower()
+        
+        # Look for specific question references in the guidance
+        import re
+        
+        # Check for "proceed to Q4", "proceed to Q17", etc.
+        q_matches = re.findall(r'proceed to q(\d+)', guidance_text)
+        if q_matches:
+            q_num = int(q_matches[0])
+            if q_num <= len(self.conversation_flow):
+                return self.conversation_flow[q_num - 1]['question']
+        
+        # Check for "skip question 2" - means go to question 3
+        skip_matches = re.findall(r'skip question (\d+)', guidance_text)
+        if skip_matches:
+            skip_num = int(skip_matches[0])
+            next_q_num = skip_num + 1
+            if next_q_num <= len(self.conversation_flow):
+                return self.conversation_flow[next_q_num - 1]['question']
+        
+        # Check for "go to Q5"
+        go_matches = re.findall(r'go to q(\d+)', guidance_text)
+        if go_matches:
+            q_num = int(go_matches[0])
+            if q_num <= len(self.conversation_flow):
+                return self.conversation_flow[q_num - 1]['question']
+        
+        # For "not sure" responses, the guidance says "go straight on to asking them the next question"
+        if response_lower in ['not sure', 'not sure.'] and 'next question' in guidance_text:
+            # This means go to the next sequential question
+            if self.current_position + 1 < len(self.conversation_flow):
+                return self.conversation_flow[self.current_position + 1]['question']
+        
+        return None
 
     def process_audio_text(self, audio_text):
         """Process the audio text and find matches"""
