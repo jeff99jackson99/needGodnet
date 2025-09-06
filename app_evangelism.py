@@ -526,6 +526,7 @@ class EvangelismScriptFollower:
             current_item = self.conversation_flow[self.current_position]
             intelligent_match = self.analyze_response_intelligence(spoken_text, current_item['question'])
             if intelligent_match:
+                logger.info(f"Intelligent match found: {intelligent_match}")
                 # Update current position based on intelligent match's next_question
                 next_q_text = intelligent_match['next_question']
                 if next_q_text and next_q_text != "End of script reached":
@@ -533,6 +534,7 @@ class EvangelismScriptFollower:
                     found = False
                     for i, item in enumerate(self.conversation_flow):
                         if item['question'] == next_q_text:
+                            logger.info(f"Position updated from {self.current_position} to {i}")
                             self.current_position = i
                             found = True
                             break

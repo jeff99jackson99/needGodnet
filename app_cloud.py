@@ -417,6 +417,8 @@ def main():
                         response = st.session_state.script_follower.process_audio_text(answer)
                         if response:
                             st.session_state.latest_response = response
+                            # Debug: Show current position after processing
+                            st.write(f"**DEBUG:** Current position after processing: {st.session_state.script_follower.current_position + 1}")
                             st.rerun()
                         else:
                             st.write(f"**DEBUG:** No response found for '{answer}'")
