@@ -93,6 +93,7 @@ class EvangelismScriptFollower:
         current_question = None
         current_responses = []
         current_guidance = []
+        in_guidance_section = False
         
         for line in lines:
             line = line.strip()
@@ -112,14 +113,20 @@ class EvangelismScriptFollower:
                 current_question = line
                 current_responses = []
                 current_guidance = []
+                in_guidance_section = False
                 
-            # Look for responses and guidance
-            elif current_question and line:
-                # Check if it's guidance (usually longer text with instructions)
-                if len(line) > 50 or 'If they say' in line or 'ask:' in line or 'proceed to' in line:
-                    current_guidance.append(line)
-                else:
+            # Look for responses (short answers like "Yes..", "Not sure.")
+            elif current_question and line and not in_guidance_section:
+                if line.endswith('..') or line in ['Yes', 'No', 'Not sure', 'Sure']:
                     current_responses.append(line)
+                elif 'If they say' in line or 'ask:' in line or 'proceed to' in line or len(line) > 30:
+                    # This is guidance text
+                    in_guidance_section = True
+                    current_guidance.append(line)
+                    
+            # Continue collecting guidance text
+            elif current_question and in_guidance_section and line:
+                current_guidance.append(line)
         
         # Add the last question
         if current_question:
@@ -495,7 +502,7 @@ def main():
                 <h4 style="color: #155724; margin-top: 0;">📊 Confidence: {response['confidence']}%</h4>
                 <p style="font-size: 16px; margin: 10px 0;"><strong>You heard:</strong> {response['matched_response']}</p>
                 <p style="font-size: 16px; margin: 10px 0;"><strong>Question #{response['question_number']}:</strong> {response['question']}</p>
-                <p style="font-size: 16px; margin: 10px 0;"><strong>Guidance:</strong> {response['guidance'][0] if response['guidance'] else 'No specific guidance'}</p>
+                <p style="font-size: 16px; margin: 10px 0;"><strong>Guidance:</strong> {' '.join(response['guidance'][:2]) if response['guidance'] else 'No specific guidance'}</p>
             </div>
             """, unsafe_allow_html=True)
 

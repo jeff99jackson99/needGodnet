@@ -481,6 +481,14 @@ def main():
             st.write(f"**Total conversation points:** {len(st.session_state.script_follower.conversation_flow)}")
             st.write(f"**Current position:** {st.session_state.script_follower.current_position + 1}")
             st.write(f"**Progress:** {((st.session_state.script_follower.current_position + 1) / len(st.session_state.script_follower.conversation_flow) * 100):.1f}%")
+            
+            # Debug: Show first question structure
+            if st.session_state.script_follower.conversation_flow:
+                first_q = st.session_state.script_follower.conversation_flow[0]
+                st.write("**Debug - First Question:**")
+                st.write(f"Question: {first_q['question']}")
+                st.write(f"Responses: {first_q['responses']}")
+                st.write(f"Guidance: {first_q['guidance'][:2] if first_q['guidance'] else 'None'}")
 
         with col2:
             st.subheader("Performance Settings")
