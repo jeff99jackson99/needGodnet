@@ -408,6 +408,7 @@ def main():
         else:  # Sample script loaded
             st.warning(f"⚠️ **Sample Script Loaded:** {len(st.session_state.script_follower.script_data)} lines (needgodscript.pdf not found)")
             st.info("The app is using a sample script for testing. Your actual script will be loaded when the PDF file is available.")
+            st.info("**Test phrases you can say:** 'Hello, how are you today?', 'I'm doing well, thank you for asking.', 'What brings you here today?', 'I'm looking for some guidance.', 'How can I help you?'")
     else:
         st.error("❌ Script not loaded. Please check the needgodscript.pdf file.")
         return
