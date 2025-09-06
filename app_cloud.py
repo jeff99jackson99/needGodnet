@@ -476,7 +476,7 @@ def main():
                     <h4 style="color: #155724; margin-top: 0;">📊 Confidence: {response['confidence']}%</h4>
                     <p style="font-size: 16px; margin: 10px 0;"><strong>You heard:</strong> {response['matched_response']}</p>
                     <p style="font-size: 16px; margin: 10px 0;"><strong>Question #{response['question_number']}:</strong> {response['question']}</p>
-                    <p style="font-size: 16px; margin: 10px 0;"><strong>Guidance:</strong> {' '.join(response['guidance'][:2]) if response['guidance'] else 'No specific guidance'}</p>
+                    <p style="font-size: 16px; margin: 10px 0;"><strong>Guidance:</strong> {' '.join(response['guidance'][:3]) if response['guidance'] else 'No specific guidance'}</p>
                 <p style="font-size: 16px; margin: 10px 0;"><strong>Next Question:</strong> {response['next_question'] if response['next_question'] and response['next_question'] != 'End of script reached' else 'End of script'}</p>
                 </div>
                 """, unsafe_allow_html=True)
@@ -488,7 +488,7 @@ def main():
                 with st.expander(f"Response {len(st.session_state.script_follower.response_history) - i}: {response['matched_response'][:50]}..."):
                     st.write(f"**Confidence:** {response['confidence']}%")
                     st.write(f"**Question #{response['question_number']}:** {response['question']}")
-                    st.write(f"**Guidance:** {response['guidance'][0] if response['guidance'] else 'No specific guidance'}")
+                    st.write(f"**Guidance:** {' '.join(response['guidance'][:3]) if response['guidance'] else 'No specific guidance'}")
                     st.write(f"**Next Question:** {response['next_question'] if response['next_question'] and response['next_question'] != 'End of script reached' else 'End of script'}")
     
     # Settings and statistics

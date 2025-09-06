@@ -272,10 +272,18 @@ class EvangelismScriptFollower:
                     # Get the next question for guidance
                     next_q = self.get_next_question()
                     
-                    # Enhance guidance with next question
+                    # Enhance guidance with next question and specific response
                     enhanced_guidance = current_item['guidance'].copy()
                     if next_q and next_q != "End of script reached":
                         enhanced_guidance.append(f"NEXT QUESTION TO ASK: {next_q}")
+                        
+                        # Add specific response guidance based on the matched response
+                        if response.lower() in ['not sure', 'not sure.']:
+                            enhanced_guidance.append("RESPONSE: Simply say the next question without additional commentary.")
+                        elif response.lower() in ['yes', 'yes.']:
+                            enhanced_guidance.append("RESPONSE: Acknowledge their answer and proceed to the next question.")
+                        elif response.lower() in ['no', 'no.']:
+                            enhanced_guidance.append("RESPONSE: Thank them for their honesty and explain the situation.")
                     
                     return {
                         'type': 'response_match',
