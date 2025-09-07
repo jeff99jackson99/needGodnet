@@ -87,6 +87,12 @@ class TestEnhancedEvangelismScriptFollower:
         result = script_follower.analyze_god_question('no i dont believe', current_item)
         assert result is not None
         assert result['matched_response'] == 'No'
+        
+        # Test other religion response (the bug fix)
+        result = script_follower.analyze_god_question('i believe in hindi', current_item)
+        assert result is not None
+        assert result['matched_response'] == 'Other religion/belief'
+        assert result['confidence'] == 90
         assert 'Building Analogy' in result['next_question']
     
     def test_good_person_question_analysis(self, script_follower):

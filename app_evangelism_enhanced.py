@@ -465,7 +465,10 @@ class EnhancedEvangelismScriptFollower:
                 'confidence': 90,
                 'context_update': {'beliefs': ['god_denial']}
             }
-        elif any(word in spoken_lower for word in ['yes', 'yeah', 'yep', 'believe', 'god', 'creator', 'jesus', 'christ', 'heaven']):
+        # More specific matching for "Yes" - avoid false positives like "believe in Hindi"
+        elif (any(word in spoken_lower for word in ['yes', 'yeah', 'yep']) or 
+              ('believe' in spoken_lower and any(word in spoken_lower for word in ['god', 'creator', 'jesus', 'christ', 'almighty', 'lord'])) or
+              any(word in spoken_lower for word in ['i believe in god', 'believe in god', 'i believe in jesus', 'believe in jesus'])):
             return {
                 'matched_response': 'Yes',
                 'next_question': self.get_question_by_number(3),
@@ -474,6 +477,22 @@ class EnhancedEvangelismScriptFollower:
                 'scripture': [],
                 'confidence': 90,
                 'context_update': {'beliefs': ['god_exists']}
+            }
+        # Check for other religions/beliefs that are NOT Christianity
+        elif any(word in spoken_lower for word in ['hindu', 'hindi', 'buddhist', 'buddhism', 'muslim', 'islam', 'jewish', 'judaism', 'atheist', 'agnostic']):
+            return {
+                'matched_response': 'Other religion/belief',
+                'next_question': '2b. Building Analogy: "Would you agree that the building I\'m sitting in had a builder, or did it just appear by itself?"',
+                'guidance': [
+                    'They mentioned a different belief system. Use the building analogy to establish the concept of a creator.',
+                    'Ask: "Would you agree that the building I\'m sitting in had a builder, or did it just appear by itself?"'
+                ],
+                'analogies': [
+                    'Building analogy: "Would you agree that the building I\'m sitting in had a builder, or did it just appear by itself?"'
+                ],
+                'scripture': [],
+                'confidence': 90,
+                'context_update': {'beliefs': ['other_religion']}
             }
         else:
             return {
