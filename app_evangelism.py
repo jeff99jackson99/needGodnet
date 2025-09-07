@@ -710,7 +710,7 @@ class EvangelismScriptFollower:
                 # They believe in heaven/hell - follow the script guidance
                 return {
                     'matched_response': 'Heaven and hell',
-                    'next_question': self.get_question_by_number(3),  # Skip to Q3
+                    'next_question': '21. So if you stood before God right now and he asked you "Why should I let you into Heaven?" what would you say?',  # Ask the follow-up question
                     'guidance': ['They believe in heaven and hell. Ask if they think they will go to heaven and why.'],
                     'confidence': 90
                 }
@@ -1145,89 +1145,61 @@ def main():
         st.error("❌ Script not loaded. Please check the needgodscript.pdf file.")
         return
 
-    # Main content area
-    col1, col2 = st.columns([1, 1])
+    # Main content area - simplified single column layout
+    st.header("🎤 Conversation Listener")
 
+    # Speech Recognition Component
+    st.subheader("Voice Input")
+    audio_text = components.html(create_evangelism_speech_component(), height=300)
+
+    # Process audio text if received
+    if audio_text and str(audio_text).strip():
+        response = st.session_state.script_follower.process_audio_text(audio_text)
+        if response:
+            st.session_state.latest_response = response
+
+    # Display the latest response prominently in one consolidated box
+    if 'latest_response' in st.session_state and st.session_state.latest_response:
+        response = st.session_state.latest_response
+
+        st.markdown("### 🎯 **SCRIPT MATCH FOUND!**")
+
+        # Consolidated response box with all information
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 3px solid #28a745;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 10px 0;
+            box-shadow: 0 8px 16px rgba(40,167,69,0.2);
+        ">
+            <h4 style="color: #155724; margin-top: 0;">📊 Confidence: {response['confidence']}%</h4>
+            <p style="font-size: 16px; margin: 10px 0;"><strong>You heard:</strong> {response['matched_response']}</p>
+            <p style="font-size: 16px; margin: 10px 0;"><strong>Question #{response['question_number']}:</strong> {response['question']}</p>
+            <p style="font-size: 16px; margin: 10px 0;"><strong>Guidance:</strong> {' '.join(response['guidance'][:2]) if response['guidance'] else 'No specific guidance'}</p>
+            <p style="font-size: 16px; margin: 10px 0;"><strong>Next:</strong> {response['next_question']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Simple controls at the bottom
+    col1, col2, col3 = st.columns(3)
+    
     with col1:
-        st.header("🎤 Conversation Listener")
-
-        # Speech Recognition Component
-        st.subheader("Voice Input")
-        audio_text = components.html(create_evangelism_speech_component(), height=300)
-
-        # Process audio text if received
-        if audio_text and str(audio_text).strip():
-            response = st.session_state.script_follower.process_audio_text(audio_text)
-            if response:
-                st.session_state.latest_response = response
-
-        # Display recent phrases
-        if st.session_state.script_follower.phrase_buffer:
-            st.subheader("Recent Phrases")
-            for i, phrase in enumerate(reversed(list(st.session_state.script_follower.phrase_buffer))):
-                st.text(f"{i+1}. {phrase}")
-
+        if st.button("🔄 Reset to Beginning"):
+            st.session_state.script_follower.current_position = 0
+            st.rerun()
+    
     with col2:
-        st.header("📝 Script Guidance")
-
-        # Display the latest response prominently
-        if 'latest_response' in st.session_state and st.session_state.latest_response:
-            response = st.session_state.latest_response
-
-            st.markdown("### 🎯 **SCRIPT MATCH FOUND!**")
-
-            # Response box with styling
-            st.markdown(f"""
-            <div style="
-                background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-                border: 3px solid #28a745;
-                border-radius: 15px;
-                padding: 20px;
-                margin: 10px 0;
-                box-shadow: 0 8px 16px rgba(40,167,69,0.2);
-            ">
-                <h4 style="color: #155724; margin-top: 0;">📊 Confidence: {response['confidence']}%</h4>
-                <p style="font-size: 16px; margin: 10px 0;"><strong>You heard:</strong> {response['matched_response']}</p>
-                <p style="font-size: 16px; margin: 10px 0;"><strong>Question #{response['question_number']}:</strong> {response['question']}</p>
-                <p style="font-size: 16px; margin: 10px 0;"><strong>Guidance:</strong> {' '.join(response['guidance'][:2]) if response['guidance'] else 'No specific guidance'}</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-        # Display response history
-        if st.session_state.script_follower.response_history:
-            st.subheader("📚 Conversation History")
-            for i, response in enumerate(reversed(list(st.session_state.script_follower.response_history))):
-                with st.expander(f"Response {len(st.session_state.script_follower.response_history) - i}: {response['matched_response'][:50]}..."):
-                    st.write(f"**Confidence:** {response['confidence']}%")
-                    st.write(f"**Question #{response['question_number']}:** {response['question']}")
-                    st.write(f"**Guidance:** {response['guidance'][0] if response['guidance'] else 'No specific guidance'}")
-
-    # Settings and statistics
-    with st.expander("⚙️ Settings & Statistics"):
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.subheader("Script Statistics")
-            st.write(f"**Total conversation points:** {len(st.session_state.script_follower.conversation_flow)}")
-            st.write(f"**Current position:** {st.session_state.script_follower.current_position + 1}")
-            st.write(f"**Progress:** {((st.session_state.script_follower.current_position + 1) / len(st.session_state.script_follower.conversation_flow) * 100):.1f}%")
-
-        with col2:
-            st.subheader("Performance Settings")
-            confidence = st.slider("Confidence Threshold", 30, 95, st.session_state.script_follower.confidence_threshold)
-            st.session_state.script_follower.confidence_threshold = confidence
-
-            # Reset position button
-            if st.button("🔄 Reset to Beginning"):
-                st.session_state.script_follower.current_position = 0
-                st.rerun()
-
-            # Clear response history button
-            if st.button("🗑️ Clear History"):
-                st.session_state.script_follower.response_history.clear()
-                if 'latest_response' in st.session_state:
-                    del st.session_state.latest_response
-                st.rerun()
+        if st.button("🗑️ Clear History"):
+            st.session_state.script_follower.response_history.clear()
+            if 'latest_response' in st.session_state:
+                del st.session_state.latest_response
+            st.rerun()
+    
+    with col3:
+        confidence = st.slider("Confidence", 30, 95, st.session_state.script_follower.confidence_threshold)
+        st.session_state.script_follower.confidence_threshold = confidence
 
 if __name__ == "__main__":
     main()
