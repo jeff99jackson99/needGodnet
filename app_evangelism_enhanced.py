@@ -399,7 +399,7 @@ class EnhancedEvangelismScriptFollower:
             if result:
                 result['type'] = 'intelligent_analysis'
             return result
-        elif "do you believe there's a god" in question_lower:
+        elif "do you believe there's a god" in question_lower or "believe there's a god" in question_lower:
             result = self.analyze_god_question(spoken_lower, current_item)
             if result:
                 result['type'] = 'intelligent_analysis'
