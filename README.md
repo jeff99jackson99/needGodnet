@@ -11,6 +11,11 @@ A Streamlit application that listens to speech in real-time and matches it again
 - 💾 **External drive storage** for logs and data
 - 🔧 **Configurable settings** for optimal performance
 - 📱 **Web interface** accessible from any device on your network
+- ✝️ **Enhanced Evangelism Script Follower** with intelligent conversation flow
+- 🧠 **Context-aware matching** with conversation history tracking
+- 🐳 **Docker support** for easy deployment
+- 🚀 **CI/CD pipeline** with GitHub Actions
+- 🧪 **Comprehensive test suite** with pytest
 
 ## Quick Start
 
@@ -30,12 +35,27 @@ A Streamlit application that listens to speech in real-time and matches it again
    cd script-follower
    ```
 
-2. **Run the application:**
+2. **Setup the project:**
    ```bash
-   python run.py
+   make setup
    ```
 
-3. **Access the app:**
+3. **Run the application:**
+   ```bash
+   # Main app
+   make main
+   
+   # Enhanced evangelism app
+   make evangelism-enhanced
+   
+   # Original evangelism app
+   make evangelism
+   
+   # Cloud app
+   make cloud
+   ```
+
+4. **Access the app:**
    - Local: `http://localhost:8501`
    - Network: `http://[your-ip]:8501`
 
@@ -130,20 +150,63 @@ GITHUB_TOKEN=your-github-token
 3. **View Responses**: See instant matches and responses
 4. **Monitor Logs**: Track all interactions
 
+## App Variants
+
+### 🎭 Main App (`app.py`)
+- General-purpose script follower
+- GitHub integration for script loading
+- File upload support
+- Real-time speech recognition
+
+### ✝️ Evangelism App (`app_evangelism.py`)
+- Specialized for evangelism conversations
+- 39-question conversation flow
+- Intelligent response matching
+- Script guidance system
+
+### ✝️ Enhanced Evangelism App (`app_evangelism_enhanced.py`)
+- **NEW**: Advanced conversation flow management
+- **NEW**: Context-aware matching with conversation history
+- **NEW**: Enhanced keyword extraction and response patterns
+- **NEW**: Intelligent analysis for better question routing
+- **NEW**: Person name and belief tracking
+- **NEW**: Improved UI with conversation context display
+
+### ☁️ Cloud App (`app_cloud.py`)
+- Optimized for cloud deployment
+- Reduced external dependencies
+- Container-ready configuration
+
 ## File Structure
 
 ```
 script-follower/
-├── app.py                 # Main Streamlit application
-├── run.py                 # Application launcher
-├── requirements.txt       # Python dependencies
-├── streamlit_config.toml  # Streamlit configuration
-├── README.md             # This file
-├── .env.example          # Environment template
-├── .gitignore            # Git ignore rules
-├── logs/                 # Interaction logs (external drive)
-├── data/                 # Cached scripts (external drive)
-└── tests/                # Test files
+├── app.py                        # Main Streamlit application
+├── app_evangelism.py             # Original evangelism app
+├── app_evangelism_enhanced.py    # Enhanced evangelism app
+├── app_cloud.py                  # Cloud-optimized app
+├── run.py                        # Application launcher
+├── requirements.txt              # Python dependencies
+├── pyproject.toml               # Project configuration
+├── Makefile                     # Build and run commands
+├── Dockerfile                   # Docker configuration
+├── docker-compose.yml           # Docker Compose setup
+├── .dockerignore               # Docker ignore rules
+├── .pre-commit-config.yaml     # Pre-commit hooks
+├── .github/workflows/          # CI/CD pipelines
+│   ├── ci.yml                  # Continuous integration
+│   └── release.yml             # Release automation
+├── .vscode/                    # VS Code configuration
+│   ├── tasks.json              # VS Code tasks
+│   └── launch.json             # Debug configuration
+├── tests/                      # Test suite
+│   └── test_evangelism_enhanced.py
+├── streamlit_config.toml       # Streamlit configuration
+├── README.md                   # This file
+├── .env.example                # Environment template
+├── .gitignore                  # Git ignore rules
+├── logs/                       # Interaction logs (external drive)
+└── data/                       # Cached scripts (external drive)
 ```
 
 ## Troubleshooting
@@ -176,21 +239,66 @@ script-follower/
 
 ## Development
 
+### Available Commands
+
+```bash
+# Setup and installation
+make setup              # Install dependencies and setup environment
+make install-dev        # Install development dependencies
+
+# Running applications
+make dev                # Run development server
+make main               # Run main app
+make evangelism         # Run original evangelism app
+make evangelism-enhanced # Run enhanced evangelism app
+make cloud              # Run cloud app
+
+# Development tools
+make test               # Run test suite
+make lint               # Run linting checks
+make fmt                # Format code
+make clean              # Clean up temporary files
+
+# Docker
+make docker/build       # Build Docker image
+make docker/run         # Run Docker container
+
+# Deployment
+make deploy             # Deploy to cloud
+make check-drive        # Check external drive status
+```
+
 ### Running in Development Mode
 
 ```bash
 # Install development dependencies
-pip install -r requirements.txt
+make install-dev
 
 # Run with auto-reload
-streamlit run app.py --server.runOnSave true
+make dev
 ```
 
 ### Testing
 
 ```bash
-# Run tests
-python -m pytest tests/
+# Run all tests
+make test
+
+# Run specific test file
+python -m pytest tests/test_evangelism_enhanced.py -v
+
+# Run with coverage
+python -m pytest tests/ --cov=. --cov-report=html
+```
+
+### Docker Development
+
+```bash
+# Build and run with Docker Compose
+docker-compose up --build
+
+# Run development version with hot reload
+docker-compose --profile dev up --build
 ```
 
 ## Contributing
