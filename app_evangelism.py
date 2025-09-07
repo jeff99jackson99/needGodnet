@@ -57,6 +57,13 @@ class EvangelismScriptFollower:
     def load_evangelism_script(self):
         """Load and parse the evangelism script"""
         try:
+            # Use hardcoded script to avoid PDF truncation issues
+            logger.info("Using hardcoded evangelism script to avoid PDF truncation issues")
+            self.conversation_flow = self.create_sample_evangelism_script()
+            logger.info(f"Evangelism script loaded with {len(self.conversation_flow)} conversation points")
+            return
+
+            # TODO: Fix PDF parsing truncation issues before re-enabling
             # Try to load from local file first
             script_file = "needgodscript.pdf"
             if os.path.exists(script_file):
