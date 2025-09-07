@@ -717,8 +717,8 @@ class EvangelismScriptFollower:
                 # They believe in heaven/hell - follow the script guidance
                 return {
                     'matched_response': 'Heaven and hell',
-                    'next_question': '21. So if you stood before God right now and he asked you "Why should I let you into Heaven?" what would you say?',  # Ask the follow-up question
-                    'guidance': ['They believe in heaven and hell. Ask if they think they will go to heaven and why.'],
+                    'next_question': 'Do you think you will go to heaven and why?',  # Ask the follow-up question as per script
+                    'guidance': ['They believe in heaven and hell. Ask if they think they will go to heaven and why and SKIP question 2.'],
                     'confidence': 90
                 }
             elif any(word in spoken_lower for word in ['reincarnation', 'rebirth', 'come back', 'born again']):
@@ -736,6 +736,44 @@ class EvangelismScriptFollower:
                     'confidence': 85
                 }
         
+        # Follow-up question: "Do you think you will go to heaven and why?"
+        elif "do you think you will go to heaven and why" in question_lower:
+            if any(word in spoken_lower for word in ['jesus', 'christ', 'died for my sins', 'paid for my sins', 'because jesus']):
+                # They say because Jesus died for their sins
+                return {
+                    'matched_response': 'Because Jesus died for my sins',
+                    'next_question': 'Based on how you\'ve lived your life, do you deserve to go to Heaven or Hell after you die?',
+                    'guidance': ['They said because Jesus died for my sins. Ask: "Based on how you\'ve lived your life, do you deserve to go to Heaven or Hell after you die?"'],
+                    'confidence': 90
+                }
+            else:
+                # They give some other reason - proceed to Q3 (good person question)
+                return {
+                    'matched_response': 'Other reason',
+                    'next_question': self.get_question_by_number(3),  # Go to Q3
+                    'guidance': ['They gave a reason other than Jesus. Proceed to question 3.'],
+                    'confidence': 90
+                }
+
+        # Follow-up question: "Based on how you've lived your life, do you deserve to go to Heaven or Hell after you die?"
+        elif "based on how you've lived your life" in question_lower:
+            if any(word in spoken_lower for word in ['heaven', 'good', 'deserve heaven']):
+                # They say Heaven - proceed to Q4
+                return {
+                    'matched_response': 'Heaven',
+                    'next_question': self.get_question_by_number(4),  # Go to Q4
+                    'guidance': ['They said Heaven. Proceed to question 4.'],
+                    'confidence': 90
+                }
+            elif any(word in spoken_lower for word in ['hell', 'bad', 'deserve hell']):
+                # They say Hell - proceed to Q17
+                return {
+                    'matched_response': 'Hell',
+                    'next_question': self.get_question_by_number(17),  # Go to Q17
+                    'guidance': ['They said Hell. Proceed to question 17.'],
+                    'confidence': 90
+                }
+
         # Question 2: "Do you believe there's a God?"
         elif "do you believe there's a god" in question_lower:
             if any(word in spoken_lower for word in ['yes', 'yeah', 'yep', 'believe', 'god', 'creator', 'jesus', 'christ', 'heaven']):
